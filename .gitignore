@@ -30,3 +30,12 @@ out/
 
 # Maven
 target/
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+
+# UI5 build
+dist/
