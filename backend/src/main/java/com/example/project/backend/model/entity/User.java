@@ -1,6 +1,6 @@
-package com.example.project.backend.entity;
+package com.example.project.backend.model.entity;
 
-import com.example.project.backend.entity.enums.SystemRole;
+import com.example.project.backend.model.enums.SystemRole;
 import jakarta.persistence.*;
 import lombok.*;
 
