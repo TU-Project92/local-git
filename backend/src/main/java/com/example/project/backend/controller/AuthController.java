@@ -1,23 +1,21 @@
 package com.example.project.backend.controller;
 
+import com.example.project.backend.config.JwtService;
 import com.example.project.backend.dto.user.request.UserLoginRequest;
 import com.example.project.backend.dto.user.request.UserRegisterRequest;
 import com.example.project.backend.dto.user.response.UserLoginResponse;
 import com.example.project.backend.dto.user.response.UserRegisterResponse;
 import com.example.project.backend.model.entity.User;
 import com.example.project.backend.repository.UserRepository;
+import com.example.project.backend.service.CustomUserDetailsService;
 import com.example.project.backend.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +26,8 @@ public class AuthController {
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final JwtService jwtService;
+    private final CustomUserDetailsService customUserDetailsService;
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> register(
@@ -39,30 +39,25 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponse> login(
-            @RequestBody @Valid UserLoginRequest request,
-            HttpServletRequest httpRequest
+            @RequestBody @Valid UserLoginRequest request
     ) {
-        Authentication authentication = authenticationManager.authenticate(
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsernameOrEmail(),
                         request.getPassword()
                 )
         );
 
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authentication);
-        SecurityContextHolder.setContext(context);
-
-        httpRequest.getSession(true).setAttribute(
-                HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-                context
-        );
-
         User user = userRepository.findByUsername(request.getUsernameOrEmail())
                 .or(() -> userRepository.findByEmail(request.getUsernameOrEmail()))
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
+        String jwtToken = jwtService.generateToken(userDetails);
+
         UserLoginResponse response = new UserLoginResponse(
+                jwtToken,
+                "Bearer",
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
