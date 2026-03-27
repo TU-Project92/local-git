@@ -1,9 +1,9 @@
 import com.example.project.backend.config.JwtService;
 import com.example.project.backend.controller.AuthController;
-import com.example.project.backend.dto.user.request.UserLoginRequest;
-import com.example.project.backend.dto.user.request.UserRegisterRequest;
-import com.example.project.backend.dto.user.response.UserLoginResponse;
-import com.example.project.backend.dto.user.response.UserRegisterResponse;
+import com.example.project.backend.dto.request.user.UserLoginRequest;
+import com.example.project.backend.dto.request.user.UserRegisterRequest;
+import com.example.project.backend.dto.response.user.UserLoginResponse;
+import com.example.project.backend.dto.response.user.UserRegisterResponse;
 import com.example.project.backend.model.entity.User;
 import com.example.project.backend.model.enums.SystemRole;
 import com.example.project.backend.repository.UserRepository;
