@@ -1,7 +1,7 @@
 package com.example.project.backend.service;
 
-import com.example.project.backend.dto.user.request.UserRegisterRequest;
-import com.example.project.backend.dto.user.response.UserRegisterResponse;
+import com.example.project.backend.dto.request.user.UserRegisterRequest;
+import com.example.project.backend.dto.response.user.UserRegisterResponse;
 import com.example.project.backend.model.entity.User;
 import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +48,4 @@ public class UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
     }
-
 }

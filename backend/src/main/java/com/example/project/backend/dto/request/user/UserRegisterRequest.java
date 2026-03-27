@@ -1,4 +1,4 @@
-package com.example.project.backend.dto.user.request;
+package com.example.project.backend.dto.request.user;
 
 import com.example.project.backend.validators.user.ValidateUsernameExistence;
 import jakarta.validation.constraints.Email;

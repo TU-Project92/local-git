@@ -1,4 +1,4 @@
-package com.example.project.backend.dto.user.request;
+package com.example.project.backend.dto.request.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

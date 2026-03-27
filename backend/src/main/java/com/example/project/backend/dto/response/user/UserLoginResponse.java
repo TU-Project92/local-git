@@ -1,4 +1,4 @@
-package com.example.project.backend.dto.user.response;
+package com.example.project.backend.dto.response.user;
 
 import com.example.project.backend.model.enums.SystemRole;
 import lombok.AllArgsConstructor;
