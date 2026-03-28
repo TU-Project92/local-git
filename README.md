@@ -7,7 +7,7 @@
 1. Navigate to the frontend directory:
 
    ```
-   PS C:\Users\XXX\Desktop\local-git\frontend\frontend>
+   \local-git\frontend\frontend>
    ```
 
 2. Install dependencies (if not already installed):
