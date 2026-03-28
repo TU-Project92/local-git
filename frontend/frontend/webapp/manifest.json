@@ -9,23 +9,10 @@
     },
     "title": "{{appTitle}}",
     "description": "{{appDescription}}",
-    "resources": "resources.json",
-    "sourceTemplate": {
-      "id": "@sap/generator-fiori:basic",
-      "version": "1.20.4",
-      "toolsId": "d96f33fa-6c05-45ce-86ac-c4a08c793ce7"
-    }
+    "resources": "resources.json"
   },
   "sap.ui": {
     "technology": "UI5",
-    "icons": {
-      "icon": "",
-      "favIcon": "",
-      "phone": "",
-      "phone@2": "",
-      "tablet": "",
-      "tablet@2": ""
-    },
     "deviceTypes": {
       "desktop": true,
       "tablet": true,
@@ -85,6 +72,11 @@
           "name": "RouteRegister",
           "pattern": "register",
           "target": "TargetRegister"
+        },
+        {
+          "name": "RouteDashboard",
+          "pattern": "dashboard",
+          "target": "TargetDashboard"
         }
       ],
       "targets": {
@@ -95,6 +87,10 @@
         "TargetRegister": {
           "viewName": "Register",
           "viewId": "Register"
+        },
+        "TargetDashboard": {
+          "viewName": "Dashboard",
+          "viewId": "Dashboard"
         }
       }
     }

@@ -8,12 +8,19 @@ sap.ui.define([
 
     return Controller.extend("com.example.project.frontend.frontend.controller.Login", {
 
+        onInit: function () {
+            var sToken = localStorage.getItem("token");
+            if (sToken) {
+                this.getOwnerComponent().getRouter().navTo("RouteDashboard");
+            }
+        },
+
         onLogin: async function () {
             var sUsernameOrEmail = this.byId("loginUsernameInput").getValue().trim();
             var sPassword = this.byId("loginPasswordInput").getValue().trim();
 
             if (!sUsernameOrEmail || !sPassword) {
-                MessageToast.show("Please fill in username and password");
+                MessageToast.show("Please fill in username/email and password");
                 return;
             }
 
@@ -36,22 +43,26 @@ sap.ui.define([
                     return;
                 }
 
-                var oData = null;
-                try {
-                    oData = sResponseText ? JSON.parse(sResponseText) : null;
-                } catch (e) {
-                    oData = null;
+                var oData = sResponseText ? JSON.parse(sResponseText) : null;
+
+                if (!oData || !oData.token) {
+                    MessageBox.error("Login response does not contain token");
+                    return;
                 }
 
-                if (oData && oData.token) {
-                    localStorage.setItem("token", oData.token);
-                }
-
-                MessageToast.show("Login successful");
+                localStorage.setItem("token", oData.token);
+                localStorage.setItem("user", JSON.stringify({
+                    id: oData.id,
+                    username: oData.username,
+                    email: oData.email,
+                    systemRole: oData.systemRole
+                }));
 
                 this.byId("loginUsernameInput").setValue("");
                 this.byId("loginPasswordInput").setValue("");
 
+                MessageToast.show("Login successful");
+                this.getOwnerComponent().getRouter().navTo("RouteDashboard");
             } catch (oError) {
                 MessageBox.error("Cannot connect to backend: " + oError.message);
             }
@@ -101,11 +112,6 @@ sap.ui.define([
                 var oNewPasswordInput = this._getForgotPasswordField("forgotNewPasswordInput");
                 var oConfirmPasswordInput = this._getForgotPasswordField("forgotConfirmPasswordInput");
 
-                if (!oUsernameOrEmailInput || !oNewPasswordInput || !oConfirmPasswordInput) {
-                    MessageBox.error("Forgot password form controls not found");
-                    return;
-                }
-
                 var sUsernameOrEmail = oUsernameOrEmailInput.getValue().trim();
                 var sNewPassword = oNewPasswordInput.getValue().trim();
                 var sConfirmPassword = oConfirmPasswordInput.getValue().trim();
@@ -140,7 +146,6 @@ sap.ui.define([
                 }
 
                 MessageToast.show(sText || "Password changed successfully");
-
                 this._clearForgotPasswordForm();
                 this.onCloseForgotPasswordDialog();
 
@@ -148,6 +153,5 @@ sap.ui.define([
                 MessageBox.error("Backend error: " + oError.message);
             }
         }
-
     });
 });

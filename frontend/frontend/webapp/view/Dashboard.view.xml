@@ -1,0 +1,203 @@
+<mvc:View
+    controllerName="com.example.project.frontend.frontend.controller.Dashboard"
+    xmlns:mvc="sap.ui.core.mvc"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+    <Page id="dashboardPage" showHeader="false" enableScrolling="false" class="dashboardPage">
+        <content>
+            <VBox class="dashboardShell" width="100%">
+
+                <HBox class="dashboardTopBar" alignItems="Center" justifyContent="SpaceBetween">
+                    <HBox alignItems="Center" class="dashboardBrandBox">
+                        <VBox class="dashboardBrandIcon"></VBox>
+                        <Title text="{i18n>dashboardBrand}" class="dashboardBrandTitle" />
+                    </HBox>
+
+                    <HBox class="dashboardSearchWrapper" alignItems="Center" justifyContent="Center">
+                        <HBox class="dashboardSearchBox" alignItems="Center">
+                            <core:Icon src="sap-icon://search" class="dashboardSearchIcon" />
+                                <Input
+                                    placeholder="{i18n>dashboardSearchPlaceholder}"
+                                    class="dashboardSearchInput"
+                                    submit=".onSearchDashboard" />
+                        </HBox>
+                    </HBox>
+
+                    <HBox class="dashboardLogoutWrapper" alignItems="Center" justifyContent="End">
+                        <Button
+                            text="{i18n>logout}"
+                            press=".onLogout"
+                            class="dashboardLogoutButton" />
+                    </HBox>
+
+                </HBox>
+
+                <HBox class="dashboardContent" justifyContent="SpaceBetween" alignItems="Stretch">
+
+                    <VBox class="dashboardColumn dashboardColumnLeft">
+                        <VBox class="glassCard profileCard">
+                            <Text text="{dashboard>/myInfo/username}" class="dashboardUsername" />
+
+                            <VBox class="innerGlassCard profileInnerCard">
+                                <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                    <Title text="{i18n>myInfo}" class="sectionSubTitle" />
+                                    <Text text="•••" class="dotsText" />
+                                </HBox>
+
+                                <ScrollContainer
+                                    height="100%"
+                                    width="100%"
+                                    vertical="true"
+                                    horizontal="false"
+                                    class="innerScrollContainer">
+                                    <VBox class="profileInfoBox">
+                                        <Text text="Email: {dashboard>/myInfo/email}" class="profileInfoText" />
+                                    </VBox>
+                                </ScrollContainer>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+
+                    <VBox class="dashboardColumn dashboardColumnCenter">
+                        <VBox class="glassCard documentsCard">
+                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="{i18n>myDocuments}" class="sectionMainTitle" />
+                                <Text text="•••" class="dotsText" />
+                            </HBox>
+
+                            <VBox class="documentsContentArea">
+                                <ScrollContainer
+                                    height="100%"
+                                    width="100%"
+                                    vertical="true"
+                                    horizontal="false"
+                                    class="documentsScroll">
+                                    <List
+                                        items="{dashboard>/myDocuments}"
+                                        class="dashboardList"
+                                        showSeparators="None">
+                                        <CustomListItem>
+                                            <HBox
+                                                class="listGlassItem documentItem"
+                                                justifyContent="SpaceBetween"
+                                                alignItems="Center">
+                                                <VBox>
+                                                    <Title text="{dashboard>title}" class="listItemTitle" />
+                                                    <Text text="{dashboard>subtitle}" class="listItemSubtitle" />
+                                                </VBox>
+                                                <Button
+                                                    text="›"
+                                                    type="Transparent"
+                                                    press=".onOpenDocument"
+                                                    class="itemArrowButton" />
+                                            </HBox>
+                                        </CustomListItem>
+                                    </List>
+                                </ScrollContainer>
+
+                                <VBox class="newDocumentFooter">
+                                    <Button
+                                        text="{i18n>newDocument}"
+                                        press=".onCreateDocument"
+                                        width="100%"
+                                        class="newDocumentButton" />
+                                </VBox>
+                            </VBox>
+                        </VBox>
+                    </VBox>
+
+                    <VBox class="dashboardColumn dashboardColumnRight">
+
+                        <VBox class="glassCard peopleCard">
+                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="{i18n>peopleWithWork}" class="sectionMainTitle" />
+                                <Text text="•••" class="dotsText" />
+                            </HBox>
+
+                            <ScrollContainer
+                                height="100%"
+                                width="100%"
+                                vertical="true"
+                                horizontal="false"
+                                class="peopleScroll">
+                                <List
+                                    items="{dashboard>/peopleWithWork}"
+                                    class="dashboardList"
+                                    showSeparators="None">
+                                    <CustomListItem>
+                                        <HBox
+                                            class="listGlassItem personItem"
+                                            justifyContent="SpaceBetween"
+                                            alignItems="Center">
+                                            <HBox alignItems="Center">
+                                                <Avatar
+                                                    displaySize="L"
+                                                    initials="{dashboard>initials}"
+                                                    class="personAvatar" />
+                                                <VBox class="personTextBox">
+                                                    <Title text="{dashboard>name}" class="listItemTitle" />
+                                                    <Text text="{dashboard>review}" class="listItemSubtitle" />
+                                                </VBox>
+                                            </HBox>
+
+                                            <Button
+                                                text="›"
+                                                type="Transparent"
+                                                press=".onOpenPersonWork"
+                                                class="itemArrowButton" />
+                                        </HBox>
+                                    </CustomListItem>
+                                </List>
+                            </ScrollContainer>
+                        </VBox>
+
+                        <VBox class="glassCard notificationsCard">
+                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="{i18n>notifications}" class="sectionMainTitle" />
+                                <Text text="•••" class="dotsText" />
+                            </HBox>
+
+                            <ScrollContainer
+                                height="100%"
+                                width="100%"
+                                vertical="true"
+                                horizontal="false"
+                                class="notificationsScroll">
+                                <VBox class="notificationListBox">
+                                    <List
+                                        items="{dashboard>/notifications}"
+                                        class="notificationList"
+                                        showSeparators="None"
+                                        visible="{= ${dashboard>/notifications}.length > 0 }">
+                                        <CustomListItem>
+                                            <HBox class="notificationRow" alignItems="Start">
+                                                <Text text="🔔" class="notificationRowIcon" />
+                                                <VBox class="notificationRowTextBox">
+                                                    <Text text="{dashboard>title}" class="notificationRowTitle" />
+                                                    <Text text="{dashboard>message}" class="notificationRowMessage" />
+                                                </VBox>
+                                            </HBox>
+                                        </CustomListItem>
+                                    </List>
+
+                                    <VBox
+                                        class="notificationEmptyState"
+                                        alignItems="Center"
+                                        justifyContent="Center"
+                                        visible="{= ${dashboard>/notifications}.length === 0 }">
+                                        <Text text="🔔" class="notificationIcon" />
+                                        <Text text="{i18n>noNotifications}" class="notificationText" />
+                                    </VBox>
+                                </VBox>
+                            </ScrollContainer>
+                        </VBox>
+
+                    </VBox>
+
+                </HBox>
+
+            </VBox>
+        </content>
+    </Page>
+</mvc:View>
