@@ -17,7 +17,7 @@ sap.ui.define([
 
         onLogin: async function () {
             var sUsernameOrEmail = this.byId("loginUsernameInput").getValue().trim();
-            var sPassword = this.byId("loginPasswordInput").getValue().trim();
+            var sPassword = this.byId("loginPasswordInput").getValue();
 
             if (!sUsernameOrEmail || !sPassword) {
                 MessageToast.show("Please fill in username/email and password");
@@ -113,8 +113,8 @@ sap.ui.define([
                 var oConfirmPasswordInput = this._getForgotPasswordField("forgotConfirmPasswordInput");
 
                 var sUsernameOrEmail = oUsernameOrEmailInput.getValue().trim();
-                var sNewPassword = oNewPasswordInput.getValue().trim();
-                var sConfirmPassword = oConfirmPasswordInput.getValue().trim();
+                var sNewPassword = oNewPasswordInput.getValue();
+                var sConfirmPassword = oConfirmPasswordInput.getValue();
 
                 if (!sUsernameOrEmail || !sNewPassword || !sConfirmPassword) {
                     MessageBox.error("Please fill all fields");
