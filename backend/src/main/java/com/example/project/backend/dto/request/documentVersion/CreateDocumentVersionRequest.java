@@ -13,10 +13,8 @@ public class CreateDocumentVersionRequest {
     @Size(max = 200, message = "Title must no exceed 200 characters")
     private String title;
 
-    /*@Size(max = 1000, message = "Description must not exceed 1000 characters")
-    private String description;*/
     @NotBlank(message = "Please specify the owner of the document")
-    private String username;
+    private String owner;
 
     @NotBlank(message = "Content is required")
     private String content;

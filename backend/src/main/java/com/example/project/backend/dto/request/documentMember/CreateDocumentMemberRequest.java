@@ -15,8 +15,8 @@ public class CreateDocumentMemberRequest {
     @NotBlank(message = "You must specify the role")
     private String role;
 
-    @NotBlank(message = "You must specify the author of the document")
-    private String author;
+    @NotBlank(message = "You must specify the owner of the document")
+    private String owner;
 
     @NotBlank(message = "You must specify the user")
     private String username;

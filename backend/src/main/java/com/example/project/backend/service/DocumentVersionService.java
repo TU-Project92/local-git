@@ -31,10 +31,10 @@ public class DocumentVersionService {
         User loggedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
-        User documentAuthor = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("The author of the document not found"));
+        User documentOwner = userRepository.findByUsername(request.getOwner())
+                .orElseThrow(() -> new IllegalArgumentException("The owner of the document not found"));
 
-        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), documentAuthor)
+        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), documentOwner)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found"));
 
         DocumentMember documentMember = documentMemberRepository.findByDocumentAndUser(document, loggedUser)

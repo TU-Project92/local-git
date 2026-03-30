@@ -33,14 +33,14 @@ public class DocumentMemberService {
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
         //Owner of the document
-        User author = userRepository.findByUsername(request.getAuthor())
+        User owner = userRepository.findByUsername(request.getTitle())
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
         //The user who will be granted a role
         User userMember = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
-        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), author)
+        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), owner)
                 .orElseThrow(() -> new IllegalArgumentException("Document not found"));
 
         //Role of the logged user in the document
@@ -58,7 +58,7 @@ public class DocumentMemberService {
         DocumentMember newMember = DocumentMember.builder()
                 .document(document)
                 .user(userMember)
-                .role(DocumentRole.stringToEnum(request.getRole()))
+                .role(DocumentRole.valueOf(request.getRole().toUpperCase()))
                 .addedBy(loggedUser)
                 .build();
 
