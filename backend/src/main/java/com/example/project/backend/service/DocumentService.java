@@ -66,6 +66,8 @@ public class DocumentService {
         savedDocument.setActiveVersion(savedVersion);
         documentRepository.save(savedDocument);
 
+        documentVersionRepository.save(firstVersion);
+
         return new CreateFirstDocumentResponse(
                 savedDocument.getId(),
                 savedDocument.getTitle(),
