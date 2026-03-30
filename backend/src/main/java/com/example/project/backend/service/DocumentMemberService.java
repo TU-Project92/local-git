@@ -2,6 +2,7 @@ package com.example.project.backend.service;
 
 import com.example.project.backend.dto.request.documentMember.CreateDocumentMemberRequest;
 import com.example.project.backend.dto.response.documentMember.CreateDocumentMemberResponse;
+import com.example.project.backend.dto.response.documentMember.SharedUserResponse;
 import com.example.project.backend.model.entity.Document;
 import com.example.project.backend.model.entity.DocumentMember;
 import com.example.project.backend.model.entity.User;
@@ -13,6 +14,8 @@ import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -68,5 +71,20 @@ public class DocumentMemberService {
                 document.getTitle(),
                 "Document role added successfully"
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<SharedUserResponse> getSharedUsers(String username) {
+        List<User> users = documentMemberRepository.findDistinctSharedUsersByUsername(username);
+
+        return users.stream()
+                .map(user -> new SharedUserResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getEmail()
+                ))
+                .toList();
     }
 }
