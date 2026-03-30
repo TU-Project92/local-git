@@ -46,6 +46,10 @@ public class DocumentVersion extends BaseEntity{
     private User approvedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rejected_by")
+    private User rejectedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_version_id")
     private DocumentVersion parentVersion;
 
@@ -53,6 +57,8 @@ public class DocumentVersion extends BaseEntity{
     private LocalDateTime createdAt;
 
     private LocalDateTime approvedAt;
+
+    private LocalDateTime rejectedAt;
 
     @OneToMany(mappedBy = "version", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
