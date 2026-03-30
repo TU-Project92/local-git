@@ -25,4 +25,14 @@ public interface DocumentMemberRepository extends JpaRepository<DocumentMember, 
     """)
     List<DocumentMember> findAllByUserWithDocumentCreatorAndActiveVersion(User user);
 
+    @Query("""
+        SELECT DISTINCT sharedMember.user
+        FROM DocumentMember loggedMember
+        JOIN loggedMember.document d
+        JOIN d.members sharedMember
+        WHERE loggedMember.user.username = :username
+          AND sharedMember.user.username <> :username
+    """)
+    List<User> findDistinctSharedUsersByUsername(String username);
+
 }

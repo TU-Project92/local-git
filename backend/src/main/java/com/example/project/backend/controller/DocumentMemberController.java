@@ -2,16 +2,16 @@ package com.example.project.backend.controller;
 
 import com.example.project.backend.dto.request.documentMember.CreateDocumentMemberRequest;
 import com.example.project.backend.dto.response.documentMember.CreateDocumentMemberResponse;
+import com.example.project.backend.dto.response.documentMember.SharedUserResponse;
 import com.example.project.backend.service.DocumentMemberService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/documentMembers")
@@ -28,5 +28,13 @@ public class DocumentMemberController {
         CreateDocumentMemberResponse response = documentMemberService.createDocumentMember(request, authentication.getName());
         System.out.println(authentication.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/shared-users")
+    public ResponseEntity<List<SharedUserResponse>> getSharedUsers(Authentication authentication) {
+        List<SharedUserResponse> response =
+                documentMemberService.getSharedUsers(authentication.getName());
+
+        return ResponseEntity.ok(response);
     }
 }
