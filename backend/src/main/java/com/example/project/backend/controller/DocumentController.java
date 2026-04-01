@@ -1,16 +1,15 @@
 package com.example.project.backend.controller;
 
-import com.example.project.backend.dto.request.document.CreateFirstDocumentRequest;
 import com.example.project.backend.dto.response.document.CreateFirstDocumentResponse;
 import com.example.project.backend.dto.response.document.DocumentListResponse;
 import com.example.project.backend.service.DocumentService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.w3c.dom.stylesheets.LinkStyle;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -21,14 +20,16 @@ public class DocumentController {
 
     private final DocumentService documentService;
 
-    @PostMapping("/createFirst")
+    @PostMapping(value = "/createFirst", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateFirstDocumentResponse> createDocument(
-            @RequestBody @Valid CreateFirstDocumentRequest request,
+            @RequestParam("title") String title,
+            @RequestParam(value = "description", required = false) String description,
+            @RequestParam("file") MultipartFile file,
             Authentication authentication
     ) {
         CreateFirstDocumentResponse response =
-                documentService.createFirstDocument(request, authentication.getName());
-        System.out.println(authentication.getName());
+                documentService.createFirstDocument(title, description, file, authentication.getName());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

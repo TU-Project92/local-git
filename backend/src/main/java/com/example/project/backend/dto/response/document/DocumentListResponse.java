@@ -13,5 +13,7 @@ public class DocumentListResponse {
     private String role;
     private String createdBy;
     private Integer activeVersionNumber;
-    private String content;
+    private String originalFileName;
+    private String contentType;
+    private Long fileSize;
 }

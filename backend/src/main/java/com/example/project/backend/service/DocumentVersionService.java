@@ -2,13 +2,12 @@ package com.example.project.backend.service;
 
 import com.example.project.backend.dto.request.documentVersion.ApproveDocumentVersionRequest;
 import com.example.project.backend.dto.request.documentVersion.CreateDocumentVersionRequest;
-import com.example.project.backend.dto.response.documentVersion.CreateDocumentVersionResponse;
-import com.example.project.backend.dto.response.documentVersion.ApproveDocumentVersionResponse;
 import com.example.project.backend.dto.request.documentVersion.RejectDocumentVersionRequest;
-import com.example.project.backend.dto.response.documentVersion.RejectDocumentVersionResponse;
+import com.example.project.backend.dto.response.documentVersion.ApproveDocumentVersionResponse;
+import com.example.project.backend.dto.response.documentVersion.CreateDocumentVersionResponse;
+import com.example.project.backend.dto.response.documentVersion.DocumentFileResponse;
 import com.example.project.backend.dto.response.documentVersion.DocumentVersionHistoryResponse;
-import com.example.project.backend.dto.request.documentVersion.DocumentVersionHistoryRequest;
-
+import com.example.project.backend.dto.response.documentVersion.RejectDocumentVersionResponse;
 import com.example.project.backend.model.entity.Document;
 import com.example.project.backend.model.entity.DocumentMember;
 import com.example.project.backend.model.entity.DocumentVersion;
@@ -19,10 +18,10 @@ import com.example.project.backend.repository.DocumentMemberRepository;
 import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.DocumentVersionRepository;
 import com.example.project.backend.repository.UserRepository;
-import jakarta.validation.Valid;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,9 +34,17 @@ public class DocumentVersionService {
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
+    private final DocumentFileStorageService documentFileStorageService;
 
     @Transactional
-    public CreateDocumentVersionResponse createDocumentVersion(CreateDocumentVersionRequest request, String username){
+    public CreateDocumentVersionResponse createDocumentVersion(
+            CreateDocumentVersionRequest request,
+            MultipartFile file,
+            String username
+    ) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
 
         User loggedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
@@ -51,22 +58,33 @@ public class DocumentVersionService {
         DocumentMember documentMember = documentMemberRepository.findByDocumentAndUser(document, loggedUser)
                 .orElseThrow(() -> new IllegalArgumentException("You don't have access to the document"));
 
-        if(documentMember.getRole() != DocumentRole.AUTHOR && documentMember.getRole() != DocumentRole.OWNER){
+        if (documentMember.getRole() != DocumentRole.AUTHOR && documentMember.getRole() != DocumentRole.OWNER) {
             throw new IllegalArgumentException("You don't have the rights to make changes to this document");
         }
 
+        DocumentVersion currentActiveVersion = document.getActiveVersion();
+        if (currentActiveVersion == null) {
+            throw new IllegalArgumentException("Document has no active version");
+        }
+
+        int newVersionNumber = currentActiveVersion.getVersionNumber() + 1;
+
+        DocumentFileStorageService.StoredFileData storedFile =
+                documentFileStorageService.saveFile(document.getId(), newVersionNumber, file);
+
         DocumentVersion newVersion = DocumentVersion.builder()
                 .document(document)
-                .versionNumber(document.getActiveVersion().getVersionNumber() + 1)
-                .content(request.getContent())
+                .versionNumber(newVersionNumber)
+                .filePath(storedFile.filePath())
+                .originalFileName(storedFile.originalFileName())
+                .contentType(storedFile.contentType())
+                .fileSize(storedFile.fileSize())
                 .status(VersionStatus.DRAFT)
                 .createdBy(loggedUser)
-                .parentVersion(document.getActiveVersion())
+                .parentVersion(currentActiveVersion)
                 .build();
 
         DocumentVersion savedVersion = documentVersionRepository.save(newVersion);
-        document.setActiveVersion(savedVersion);
-        //documentRepository.save(document);
 
         return new CreateDocumentVersionResponse(
                 savedVersion.getId(),
@@ -76,35 +94,38 @@ public class DocumentVersionService {
                 "Document version created successfully"
         );
     }
+
     @Transactional
     public ApproveDocumentVersionResponse approveVersion(
             ApproveDocumentVersionRequest request,
             String reviewerUsername
-
     ) {
-            User reviewer = userRepository.findByUsername(reviewerUsername)
+        User reviewer = userRepository.findByUsername(reviewerUsername)
                 .orElseThrow(() -> new IllegalArgumentException("Reviewer not found"));
 
-            DocumentVersion version = documentVersionRepository
+        DocumentVersion version = documentVersionRepository
                 .findByIdAndDocumentId(request.getVersionId(), request.getDocumentId())
                 .orElseThrow(() -> new IllegalArgumentException("Version not found"));
 
-            Document document = version.getDocument();
+        if (version.getStatus() != VersionStatus.DRAFT) {
+            throw new IllegalArgumentException("Only draft versions can be approved");
+        }
 
-            DocumentMember membership = documentMemberRepository.findByDocumentAndUser(document, reviewer)
+        Document document = version.getDocument();
+
+        DocumentMember membership = documentMemberRepository.findByDocumentAndUser(document, reviewer)
                 .orElseThrow(() -> new IllegalArgumentException("User is not an authorized member for this action"));
 
-            if (membership.getRole() != DocumentRole.REVIEWER) {
+        if (membership.getRole() != DocumentRole.REVIEWER) {
             throw new IllegalArgumentException("Only reviewers can approve versions");
-            }
-
+        }
 
         version.setStatus(VersionStatus.APPROVED);
         version.setApprovedBy(reviewer);
         version.setApprovedAt(LocalDateTime.now());
         document.setActiveVersion(version);
 
-        documentVersionRepository. save(version);
+        documentVersionRepository.save(version);
         documentRepository.save(document);
 
         return new ApproveDocumentVersionResponse(
@@ -115,8 +136,8 @@ public class DocumentVersionService {
                 version.getStatus().name(),
                 request.getComment()
         );
-
     }
+
     @Transactional
     public RejectDocumentVersionResponse rejectVersion(
             RejectDocumentVersionRequest request,
@@ -128,6 +149,10 @@ public class DocumentVersionService {
         DocumentVersion version = documentVersionRepository
                 .findByIdAndDocumentId(request.getVersionId(), request.getDocumentId())
                 .orElseThrow(() -> new IllegalArgumentException("Version not found"));
+
+        if (version.getStatus() != VersionStatus.DRAFT) {
+            throw new IllegalArgumentException("Only draft versions can be rejected");
+        }
 
         Document document = version.getDocument();
 
@@ -172,4 +197,12 @@ public class DocumentVersionService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public DocumentFileResponse downloadVersionFile(Long versionId, Long documentId) {
+        DocumentVersion version = documentVersionRepository
+                .findByIdAndDocumentId(versionId, documentId)
+                .orElseThrow(() -> new IllegalArgumentException("Version not found"));
+
+        return documentFileStorageService.readFile(version);
+    }
 }

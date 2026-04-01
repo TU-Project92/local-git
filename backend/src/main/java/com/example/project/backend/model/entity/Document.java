@@ -16,7 +16,7 @@ import java.util.List;
 @Builder
 public class Document extends BaseEntity{
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 200, unique = true)
     private String title;
 
     @Column(length = 1000)
