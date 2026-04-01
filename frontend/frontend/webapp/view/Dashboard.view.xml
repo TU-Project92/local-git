@@ -18,9 +18,11 @@
                         <HBox class="dashboardSearchBox" alignItems="Center">
                             <core:Icon src="sap-icon://search" class="dashboardSearchIcon" />
                                 <Input
+                                    value="{dashboard>/search}"
                                     placeholder="{i18n>dashboardSearchPlaceholder}"
                                     class="dashboardSearchInput"
-                                    submit=".onSearchDashboard" />
+                                    submit=".onSearchDashboard"
+                                    liveChange=".onSearchLiveChange" />
                         </HBox>
                     </HBox>
 
@@ -84,7 +86,7 @@
                                                 alignItems="Center">
                                                 <VBox>
                                                     <Title text="{dashboard>title}" class="listItemTitle" />
-                                                    <Text text="{dashboard>subtitle}" class="listItemSubtitle" />
+                                                    <Text text="{dashboard>description}" class="listItemSubtitle" />
                                                 </VBox>
                                                 <Button
                                                     text="›"

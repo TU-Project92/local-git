@@ -16,70 +16,107 @@ sap.ui.define([
                 return;
             }
 
+            var oStoredUser = {};
+            try {
+                oStoredUser = JSON.parse(localStorage.getItem("user") || "{}");
+            } catch (e) {
+                oStoredUser = {};
+            }
+
             var oDashboardModel = new JSONModel({
                 myInfo: {
-                    username: "",
-                    email: "",
-                    systemRole: ""
+                    username: oStoredUser.username || "",
+                    email: oStoredUser.email || "",
+                    systemRole: oStoredUser.systemRole || ""
                 },
                 myDocuments: [],
                 peopleWithWork: [],
-                notifications: []
+                notifications: [],
+                search: ""
             });
 
             this.getView().setModel(oDashboardModel, "dashboard");
-            this._loadDashboard();
+            this._loadDashboardData("");
         },
 
-        _loadDashboard: async function () {
+        _loadDashboardData: async function (sSearch) {
             var sToken = localStorage.getItem("token");
-            var oStoredUser;
-            var sStoredUsername = "";
 
             try {
-                oStoredUser = JSON.parse(localStorage.getItem("user") || "{}");
-                sStoredUsername = oStoredUser.username || oStoredUser.email || "";
-            } catch (e) {
-                sStoredUsername = "";
-            }
+                var sDocumentsUrl = "http://localhost:8080/api/documents/my";
+                var sUsersUrl = "http://localhost:8080/api/documentMembers/shared-users";
 
-            try {
-                const oResponse = await fetch("http://localhost:8080/api/dashboard", {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": "Bearer " + sToken
-                    }
-                });
-
-                const sText = await oResponse.text();
-
-                if (!oResponse.ok) {
-                    if (oResponse.status === 401 || oResponse.status === 403) {
-                        localStorage.removeItem("token");
-                        localStorage.removeItem("user");
-                        this.getOwnerComponent().getRouter().navTo("RouteLogin");
-                        return;
-                    }
-
-                    throw new Error(sText || "Dashboard loading failed");
+                if (sSearch && sSearch.trim()) {
+                    var sEncodedSearch = encodeURIComponent(sSearch.trim());
+                    sDocumentsUrl += "?search=" + sEncodedSearch;
+                    sUsersUrl += "?search=" + sEncodedSearch;
                 }
 
-                var oData = sText ? JSON.parse(sText) : {};
-                var oMyInfo = oData.myInfo || {};
+                const [oDocumentsResponse, oUsersResponse] = await Promise.all([
+                    fetch(sDocumentsUrl, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + sToken
+                        }
+                    }),
+                    fetch(sUsersUrl, {
+                        method: "GET",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + sToken
+                        }
+                    })
+                ]);
 
-                this.getView().getModel("dashboard").setData({
-                    myInfo: {
-                        username: oMyInfo.username || sStoredUsername || "User",
-                        email: oMyInfo.email || oStoredUser.email || "",
-                    },
-                    myDocuments: Array.isArray(oData.myDocuments) ? oData.myDocuments : [],
-                    peopleWithWork: Array.isArray(oData.peopleWithWork) ? oData.peopleWithWork : [],
-                    notifications: Array.isArray(oData.notifications) ? oData.notifications : []
+                if (
+                    oDocumentsResponse.status === 401 || oDocumentsResponse.status === 403 ||
+                    oUsersResponse.status === 401 || oUsersResponse.status === 403
+                ) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("user");
+                    this.getOwnerComponent().getRouter().navTo("RouteLogin");
+                    return;
+                }
+
+                const sDocumentsText = await oDocumentsResponse.text();
+                const sUsersText = await oUsersResponse.text();
+
+                if (!oDocumentsResponse.ok) {
+                    throw new Error(sDocumentsText || "Documents loading failed");
+                }
+
+                if (!oUsersResponse.ok) {
+                    throw new Error(sUsersText || "Users loading failed");
+                }
+
+                var aDocuments = sDocumentsText ? JSON.parse(sDocumentsText) : [];
+                var aUsers = sUsersText ? JSON.parse(sUsersText) : [];
+
+                var aMappedUsers = (Array.isArray(aUsers) ? aUsers : []).map(function (oUser) {
+                    var sFirstName = oUser.firstName || "";
+                    var sLastName = oUser.lastName || "";
+                    var sUsername = oUser.username || "";
+                    var sEmail = oUser.email || "";
+                    var sName = (sFirstName + " " + sLastName).trim() || sUsername;
+
+                    return {
+                        id: oUser.id,
+                        username: sUsername,
+                        firstName: sFirstName,
+                        lastName: sLastName,
+                        email: sEmail,
+                        name: sName,
+                        review: sEmail,
+                        initials: ((sFirstName.charAt(0) || "") + (sLastName.charAt(0) || "") || sUsername.substring(0, 2)).toUpperCase()
+                    };
                 });
 
+                this.getView().getModel("dashboard").setProperty("/myDocuments", Array.isArray(aDocuments) ? aDocuments : []);
+                this.getView().getModel("dashboard").setProperty("/peopleWithWork", aMappedUsers);
+
             } catch (oError) {
-                MessageBox.error("Cannot load dashboard: " + oError.message);
+                MessageBox.error("Cannot load dashboard data: " + oError.message);
             }
         },
 
@@ -94,16 +131,36 @@ sap.ui.define([
             MessageToast.show("Create document ще го вържем след това.");
         },
 
-        onOpenDocument: function () {
-            MessageToast.show("Open document ще го вържем след това.");
+        onOpenDocument: function (oEvent) {
+            var oContext = oEvent.getSource().getBindingContext("dashboard");
+            if (!oContext) {
+                return;
+            }
+
+            var oDocument = oContext.getObject();
+            MessageToast.show("Избран документ: " + (oDocument.title || ""));
         },
 
-        onOpenPersonWork: function () {
-            MessageToast.show("Person work details ще ги вържем след това.");
+        onOpenPersonWork: function (oEvent) {
+            var oContext = oEvent.getSource().getBindingContext("dashboard");
+            if (!oContext) {
+                return;
+            }
+
+            var oUser = oContext.getObject();
+            MessageToast.show("Избран user: " + (oUser.name || oUser.username || ""));
         },
 
-        onSearchDashboard: function () {
-            MessageToast.show("Search ще го вържем след това.");
+        onSearchDashboard: function (oEvent) {
+            var sValue = oEvent.getSource().getValue();
+            this.getView().getModel("dashboard").setProperty("/search", sValue);
+            this._loadDashboardData(sValue);
+        },
+
+        onSearchLiveChange: function (oEvent) {
+            var sValue = oEvent.getParameter("value");
+            this.getView().getModel("dashboard").setProperty("/search", sValue);
+            this._loadDashboardData(sValue);
         }
     });
 });

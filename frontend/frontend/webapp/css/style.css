@@ -358,12 +358,12 @@ body,
 
 .dashboardSearchBox {
     width: 100%;
-    max-width: 620px;
+    max-width: 720px;
     height: 46px;
-    padding: 0 14px;
+    padding: 0 10px;
     border-radius: 12px;
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid rgba(220, 220, 235, 0.95);
+    background: rgba(146, 116, 207, 0.95);
+    border: 1px solid rgba(175, 27, 239, 0.95);
     box-shadow: none !important;
 }
 
@@ -390,6 +390,21 @@ body,
     background: transparent !important;
 }
 
+.dashboardSearchInput .sapMInputBaseContentWrapper::before,
+.dashboardSearchInput .sapMInputBaseContentWrapper::after,
+.dashboardSearchInput.sapMInputBaseFocused .sapMInputBaseContentWrapper::before,
+.dashboardSearchInput.sapMInputBaseFocused .sapMInputBaseContentWrapper::after,
+.dashboardSearchInput.sapMFocus .sapMInputBaseContentWrapper::before,
+.dashboardSearchInput.sapMFocus .sapMInputBaseContentWrapper::after,
+.dashboardSearchInput.sapMFocused .sapMInputBaseContentWrapper::before,
+.dashboardSearchInput.sapMFocused .sapMInputBaseContentWrapper::after {
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+    display: none !important;
+    content: none !important;
+}
+
 .dashboardSearchInput input,
 .dashboardSearchInput input:focus,
 .dashboardSearchInput .sapMInputBaseInner,
@@ -404,10 +419,27 @@ body,
     padding-left: 0 !important;
 }
 
+.dashboardSearchInput.sapMInputBaseFocused {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
+.dashboardSearchInput.sapMInputBaseFocused .sapMInputBaseContentWrapper {
+    outline: none !important;
+    box-shadow: none !important;
+    border: none !important;
+}
+
 .dashboardSearchInput input::placeholder {
-    color: #777490 !important;
+    color: #000000 !important;
     opacity: 1;
     font-style: normal;
+}
+
+.dashboardSearchBox *:focus {
+    outline: none !important;
+    box-shadow: none !important;
 }
 
 .dashboardLogoutButton {
@@ -800,7 +832,8 @@ newDocumentFooter.newDocumentFooter {
     }
 
     .dashboardSearchBox {
-        max-width: 100%;
+        max-width: 900px;
+        width: 100%;
     }
 
     .dashboardContent {

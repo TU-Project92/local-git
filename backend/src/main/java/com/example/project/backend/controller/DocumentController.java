@@ -33,12 +33,13 @@ public class DocumentController {
     }
 
     @GetMapping("/my")
-    public ResponseEntity<List<DocumentListResponse>> getMyDocuments(Authentication authentication) {
-        System.out.println(authentication);
+    public ResponseEntity<List<DocumentListResponse>> getMyDocuments(
+            Authentication authentication,
+            @RequestParam(required = false) String search
+    ) {
         List<DocumentListResponse> response =
-                documentService.getLoggedUserDocuments(authentication.getName());
+                documentService.getLoggedUserDocuments(authentication.getName(), search);
 
         return ResponseEntity.ok(response);
     }
-
 }
