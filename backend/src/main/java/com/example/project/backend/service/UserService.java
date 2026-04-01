@@ -8,6 +8,10 @@ import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.example.project.backend.dto.response.user.UserSearchResponse;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -62,5 +66,19 @@ public class UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserSearchResponse> searchUsers(String search) {
+        return userRepository.searchUsers(search)
+                .stream()
+                .map(user -> new UserSearchResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getEmail()
+                ))
+                .toList();
     }
 }

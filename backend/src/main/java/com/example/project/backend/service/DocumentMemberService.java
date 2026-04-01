@@ -74,9 +74,8 @@ public class DocumentMemberService {
     }
 
     @Transactional(readOnly = true)
-    public List<SharedUserResponse> getSharedUsers(String username, String search) {
-        List<User> users = documentMemberRepository
-                .findDistinctSharedUsersByUsernameAndSearch(username, search);
+    public List<SharedUserResponse> getSharedUsers(String username) {
+        List<User> users = documentMemberRepository.findDistinctSharedUsersByUsername(username);
 
         return users.stream()
                 .map(user -> new SharedUserResponse(
