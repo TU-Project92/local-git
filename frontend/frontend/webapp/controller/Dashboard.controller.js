@@ -44,8 +44,8 @@ sap.ui.define([
 
             try {
                 var sDocumentsUrl = "http://localhost:8080/api/documents/my";
-                var sUsersUrl = "http://localhost:8080/api/documentMembers/shared-users";
-
+                var sUsersUrl = "http://localhost:8080/api/users/search";
+                
                 if (sSearch && sSearch.trim()) {
                     var sEncodedSearch = encodeURIComponent(sSearch.trim());
                     sDocumentsUrl += "?search=" + sEncodedSearch;

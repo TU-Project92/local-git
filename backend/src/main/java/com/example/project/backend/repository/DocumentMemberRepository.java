@@ -53,25 +53,4 @@ public interface DocumentMemberRepository extends JpaRepository<DocumentMember, 
             @Param("username") String username,
             @Param("search") String search
     );
-
-    @Query("""
-    SELECT DISTINCT sharedMember.user
-    FROM DocumentMember loggedMember
-    JOIN loggedMember.document d
-    JOIN d.members sharedMember
-    WHERE loggedMember.user.username = :username
-      AND sharedMember.user.username <> :username
-      AND (
-            :search IS NULL
-            OR :search = ''
-            OR LOWER(sharedMember.user.username) LIKE LOWER(CONCAT('%', :search, '%'))
-            OR LOWER(sharedMember.user.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
-            OR LOWER(sharedMember.user.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
-            OR LOWER(sharedMember.user.email) LIKE LOWER(CONCAT('%', :search, '%'))
-          )
-    """)
-    List<User> findDistinctSharedUsersByUsernameAndSearch(
-            @Param("username") String username,
-            @Param("search") String search
-    );
 }

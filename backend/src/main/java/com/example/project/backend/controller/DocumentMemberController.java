@@ -24,19 +24,17 @@ public class DocumentMemberController {
     public ResponseEntity<CreateDocumentMemberResponse> createDocumentMember(
             @RequestBody @Valid CreateDocumentMemberRequest request,
             Authentication authentication
-            ) {
-        CreateDocumentMemberResponse response = documentMemberService.createDocumentMember(request, authentication.getName());
-        System.out.println(authentication.getName());
+    ) {
+        CreateDocumentMemberResponse response =
+                documentMemberService.createDocumentMember(request, authentication.getName());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/shared-users")
-    public ResponseEntity<List<SharedUserResponse>> getSharedUsers(
-            Authentication authentication,
-            @RequestParam(required = false) String search
-    ) {
+    public ResponseEntity<List<SharedUserResponse>> getSharedUsers(Authentication authentication) {
         List<SharedUserResponse> response =
-                documentMemberService.getSharedUsers(authentication.getName(), search);
+                documentMemberService.getSharedUsers(authentication.getName());
 
         return ResponseEntity.ok(response);
     }
