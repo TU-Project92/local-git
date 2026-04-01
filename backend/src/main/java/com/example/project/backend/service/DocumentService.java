@@ -1,6 +1,5 @@
 package com.example.project.backend.service;
 
-import com.example.project.backend.dto.request.document.CreateFirstDocumentRequest;
 import com.example.project.backend.dto.response.document.CreateFirstDocumentResponse;
 import com.example.project.backend.dto.response.document.DocumentListResponse;
 import com.example.project.backend.model.entity.Document;
@@ -16,6 +15,7 @@ import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,21 +27,30 @@ public class DocumentService {
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
+    private final DocumentFileStorageService documentFileStorageService;
 
     @Transactional
-    public CreateFirstDocumentResponse createFirstDocument(CreateFirstDocumentRequest request, String username) {
+    public CreateFirstDocumentResponse createFirstDocument(
+            String title,
+            String description,
+            MultipartFile file,
+            String username
+    ) {
+
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File is required");
+        }
 
         User loggedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
         Document document = Document.builder()
-                .title(request.getTitle())
-                .description(request.getDescription())
+                .title(title)
+                .description(description != null ? description.trim() : null)
                 .createdBy(loggedUser)
                 .build();
 
         Document savedDocument = documentRepository.save(document);
-
 
         DocumentMember ownerMember = DocumentMember.builder()
                 .document(savedDocument)
@@ -52,11 +61,16 @@ public class DocumentService {
 
         documentMemberRepository.save(ownerMember);
 
+        DocumentFileStorageService.StoredFileData storedFile =
+                documentFileStorageService.saveFile(savedDocument.getId(), 1, file);
 
         DocumentVersion firstVersion = DocumentVersion.builder()
                 .document(savedDocument)
                 .versionNumber(1)
-                .content(request.getContent())
+                .filePath(storedFile.filePath())
+                .originalFileName(storedFile.originalFileName())
+                .contentType(storedFile.contentType())
+                .fileSize(storedFile.fileSize())
                 .status(VersionStatus.DRAFT)
                 .createdBy(loggedUser)
                 .parentVersion(null)
@@ -66,8 +80,6 @@ public class DocumentService {
         savedDocument.setActiveVersion(savedVersion);
         documentRepository.save(savedDocument);
 
-        documentVersionRepository.save(firstVersion);
-
         return new CreateFirstDocumentResponse(
                 savedDocument.getId(),
                 savedDocument.getTitle(),
@@ -76,7 +88,6 @@ public class DocumentService {
                 DocumentRole.OWNER,
                 "Document created successfully"
         );
-
     }
 
     @Transactional(readOnly = true)
@@ -95,7 +106,13 @@ public class DocumentService {
                                 ? member.getDocument().getActiveVersion().getVersionNumber()
                                 : null,
                         member.getDocument().getActiveVersion() != null
-                                ? member.getDocument().getActiveVersion().getContent()
+                                ? member.getDocument().getActiveVersion().getOriginalFileName()
+                                : null,
+                        member.getDocument().getActiveVersion() != null
+                                ? member.getDocument().getActiveVersion().getContentType()
+                                : null,
+                        member.getDocument().getActiveVersion() != null
+                                ? member.getDocument().getActiveVersion().getFileSize()
                                 : null
                 ))
                 .toList();

@@ -1,21 +1,25 @@
 package com.example.project.backend.controller;
 
-import com.example.project.backend.dto.request.documentVersion.CreateDocumentVersionRequest;
-import com.example.project.backend.dto.response.documentVersion.CreateDocumentVersionResponse;
-import com.example.project.backend.dto.response.documentVersion.ApproveDocumentVersionResponse;
-import com.example.project.backend.dto.response.documentVersion.DocumentVersionHistoryResponse;
-import com.example.project.backend.dto.request.documentVersion.DocumentVersionHistoryRequest;
 import com.example.project.backend.dto.request.documentVersion.ApproveDocumentVersionRequest;
+import com.example.project.backend.dto.request.documentVersion.CreateDocumentVersionRequest;
+import com.example.project.backend.dto.request.documentVersion.DocumentVersionHistoryRequest;
 import com.example.project.backend.dto.request.documentVersion.RejectDocumentVersionRequest;
+import com.example.project.backend.dto.response.documentVersion.ApproveDocumentVersionResponse;
+import com.example.project.backend.dto.response.documentVersion.CreateDocumentVersionResponse;
+import com.example.project.backend.dto.response.documentVersion.DocumentFileResponse;
+import com.example.project.backend.dto.response.documentVersion.DocumentVersionHistoryResponse;
 import com.example.project.backend.dto.response.documentVersion.RejectDocumentVersionResponse;
-import com.example.project.backend.model.entity.DocumentVersion;
 import com.example.project.backend.service.DocumentVersionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -26,23 +30,32 @@ public class DocumentVersionController {
 
     private final DocumentVersionService documentVersionService;
 
-    @PostMapping("/createNew")
+    @PostMapping(value = "/createNew", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateDocumentVersionResponse> createVersion(
-            @RequestBody @Valid CreateDocumentVersionRequest request,
+            @RequestParam("title") String title,
+            @RequestParam("owner") String owner,
+            @RequestParam("file") MultipartFile file,
             Authentication authentication
-            ) {
-        CreateDocumentVersionResponse response = documentVersionService.createDocumentVersion(request, authentication.getName());
-        System.out.println(authentication.getName());
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+    ) {
+        CreateDocumentVersionRequest request = new CreateDocumentVersionRequest();
+        request.setTitle(title);
+        request.setOwner(owner);
 
+        CreateDocumentVersionResponse response =
+                documentVersionService.createDocumentVersion(request, file, authentication.getName());
+
+        return ResponseEntity.status(201).body(response);
+    }
 
     @PatchMapping("/approve")
     public ResponseEntity<ApproveDocumentVersionResponse> approveVersion(
             @RequestBody @Valid ApproveDocumentVersionRequest request,
             Authentication authentication
     ) {
-        return ResponseEntity.ok(documentVersionService.approveVersion(request, authentication.getName()));
+        ApproveDocumentVersionResponse response =
+                documentVersionService.approveVersion(request, authentication.getName());
+
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/reject")
@@ -50,14 +63,42 @@ public class DocumentVersionController {
             @RequestBody @Valid RejectDocumentVersionRequest request,
             Authentication authentication
     ) {
-        return ResponseEntity.ok(documentVersionService.rejectVersion(request, authentication.getName()));
+        RejectDocumentVersionResponse response =
+                documentVersionService.rejectVersion(request, authentication.getName());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/history")
     public ResponseEntity<List<DocumentVersionHistoryResponse>> getVersionHistory(
             @RequestBody @Valid DocumentVersionHistoryRequest request
     ) {
-        return ResponseEntity.ok(documentVersionService.getVersionHistory(request.getDocumentId()));
+        List<DocumentVersionHistoryResponse> response =
+                documentVersionService.getVersionHistory(request.getDocumentId());
+
+        return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{documentId}/{versionId}/download")
+    public ResponseEntity<ByteArrayResource> downloadVersionFile(
+            @PathVariable Long documentId,
+            @PathVariable Long versionId
+    ) {
+        DocumentFileResponse fileResponse =
+                documentVersionService.downloadVersionFile(versionId, documentId);
+
+        ByteArrayResource resource = new ByteArrayResource(fileResponse.getContent());
+
+        return ResponseEntity.ok()
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        ContentDisposition.attachment()
+                                .filename(fileResponse.getFileName())
+                                .build()
+                                .toString()
+                )
+                .contentType(MediaType.parseMediaType(fileResponse.getContentType()))
+                .contentLength(fileResponse.getContent().length)
+                .body(resource);
+    }
 }

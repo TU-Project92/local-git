@@ -15,7 +15,4 @@ public class CreateDocumentVersionRequest {
 
     @NotBlank(message = "Please specify the owner of the document")
     private String owner;
-
-    @NotBlank(message = "Content is required")
-    private String content;
 }
