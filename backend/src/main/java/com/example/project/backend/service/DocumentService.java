@@ -80,12 +80,9 @@ public class DocumentService {
     }
 
     @Transactional(readOnly = true)
-    public List<DocumentListResponse> getLoggedUserDocuments(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
+    public List<DocumentListResponse> getLoggedUserDocuments(String username, String search) {
         List<DocumentMember> memberships =
-                documentMemberRepository.findAllByUserWithDocumentCreatorAndActiveVersion(user);
+                documentMemberRepository.findMyDocumentsByUsernameAndSearch(username, search);
 
         return memberships.stream()
                 .map(member -> new DocumentListResponse(

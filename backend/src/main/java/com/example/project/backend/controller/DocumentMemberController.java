@@ -31,9 +31,12 @@ public class DocumentMemberController {
     }
 
     @GetMapping("/shared-users")
-    public ResponseEntity<List<SharedUserResponse>> getSharedUsers(Authentication authentication) {
+    public ResponseEntity<List<SharedUserResponse>> getSharedUsers(
+            Authentication authentication,
+            @RequestParam(required = false) String search
+    ) {
         List<SharedUserResponse> response =
-                documentMemberService.getSharedUsers(authentication.getName());
+                documentMemberService.getSharedUsers(authentication.getName(), search);
 
         return ResponseEntity.ok(response);
     }

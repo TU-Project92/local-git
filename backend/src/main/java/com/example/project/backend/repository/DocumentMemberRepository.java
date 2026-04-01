@@ -6,6 +6,7 @@ import com.example.project.backend.model.entity.DocumentMember;
 import com.example.project.backend.model.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -35,4 +36,42 @@ public interface DocumentMemberRepository extends JpaRepository<DocumentMember, 
     """)
     List<User> findDistinctSharedUsersByUsername(String username);
 
+    @Query("""
+    SELECT DISTINCT dm
+    FROM DocumentMember dm
+    JOIN FETCH dm.document d
+    JOIN FETCH d.createdBy
+    LEFT JOIN FETCH d.activeVersion av
+    WHERE dm.user.username = :username
+      AND (
+            :search IS NULL
+            OR :search = ''
+            OR LOWER(d.title) LIKE LOWER(CONCAT('%', :search, '%'))
+          )
+    """)
+    List<DocumentMember> findMyDocumentsByUsernameAndSearch(
+            @Param("username") String username,
+            @Param("search") String search
+    );
+
+    @Query("""
+    SELECT DISTINCT sharedMember.user
+    FROM DocumentMember loggedMember
+    JOIN loggedMember.document d
+    JOIN d.members sharedMember
+    WHERE loggedMember.user.username = :username
+      AND sharedMember.user.username <> :username
+      AND (
+            :search IS NULL
+            OR :search = ''
+            OR LOWER(sharedMember.user.username) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(sharedMember.user.firstName) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(sharedMember.user.lastName) LIKE LOWER(CONCAT('%', :search, '%'))
+            OR LOWER(sharedMember.user.email) LIKE LOWER(CONCAT('%', :search, '%'))
+          )
+    """)
+    List<User> findDistinctSharedUsersByUsernameAndSearch(
+            @Param("username") String username,
+            @Param("search") String search
+    );
 }
