@@ -2,6 +2,7 @@ package com.example.project.backend.service;
 
 import com.example.project.backend.dto.request.user.ForgotPasswordRequest;
 import com.example.project.backend.dto.request.user.UserRegisterRequest;
+import com.example.project.backend.dto.response.user.UserAddMyInfoResponse;
 import com.example.project.backend.dto.response.user.UserRegisterResponse;
 import com.example.project.backend.model.entity.User;
 import com.example.project.backend.repository.UserRepository;
@@ -80,5 +81,31 @@ public class UserService {
                         user.getEmail()
                 ))
                 .toList();
+    }
+
+    @Transactional
+    public UserAddMyInfoResponse addMyInfo(String info, String username){
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+
+        user.setMyInfo(info);
+
+        return new UserAddMyInfoResponse(
+                user.getId(),
+                user.getUsername(),
+                "Personal information added successfully"
+        );
+    }
+
+    public String getMyInfo(String username){
+        User user = userRepository.findByUsername((username))
+                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+
+        String info = user.getMyInfo();
+        if(info == null){
+            throw new IllegalArgumentException("No personal information found");
+        }
+
+        return info;
     }
 }
