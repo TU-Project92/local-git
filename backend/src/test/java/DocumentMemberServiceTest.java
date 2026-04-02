@@ -233,10 +233,10 @@ class DocumentMemberServiceTest {
                 .build();
         sharedUser2.setId(2L);
 
-        when(documentMemberRepository.findDistinctSharedUsersByUsernameAndSearch("ivan123", "mar"))
+        when(documentMemberRepository.findDistinctSharedUsersByUsername("ivan123"))
                 .thenReturn(List.of(sharedUser1, sharedUser2));
 
-        List<SharedUserResponse> response = documentMemberService.getSharedUsers("ivan123", "mar");
+        List<SharedUserResponse> response = documentMemberService.getSharedUsers("ivan123");
 
         assertEquals(2, response.size());
 
