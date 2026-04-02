@@ -1,9 +1,14 @@
 package com.example.project.backend.controller;
 
+import com.example.project.backend.dto.request.user.UserAddMyInfoRequest;
+import com.example.project.backend.dto.response.user.UserAddMyInfoResponse;
 import com.example.project.backend.dto.response.user.UserSearchResponse;
 import com.example.project.backend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,5 +25,18 @@ public class UserController {
             @RequestParam(required = false) String search
     ) {
         return ResponseEntity.ok(userService.searchUsers(search));
+    }
+
+    @GetMapping("/getMyInfo")
+    public ResponseEntity<String> getMyInfo(Authentication authentication){
+        String info = userService.getMyInfo(authentication.getName());
+        return ResponseEntity.ok(info);
+    }
+
+    @PostMapping("/addMyInfo")
+    public ResponseEntity<UserAddMyInfoResponse> addMyInfo(
+            @RequestBody @Valid UserAddMyInfoRequest request, Authentication authentication){
+        UserAddMyInfoResponse response = userService.addMyInfo(request.getInfo(), authentication.getName());
+        return ResponseEntity.ok(response);
     }
 }

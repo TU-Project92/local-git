@@ -33,6 +33,10 @@ public class User extends BaseEntity{
     @Column(nullable = false)
     private String password;
 
+    @Lob
+    @Column(name = "my_info", columnDefinition = "LONGTEXT")
+    private String myInfo;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
