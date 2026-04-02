@@ -15,13 +15,18 @@ import com.example.project.backend.repository.DocumentMemberRepository;
 import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.DocumentVersionRepository;
 import com.example.project.backend.repository.UserRepository;
+import com.example.project.backend.service.DocumentFileStorageService;
 import com.example.project.backend.service.DocumentVersionService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+import com.example.project.backend.dto.response.documentVersion.DocumentFileResponse;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +49,9 @@ class DocumentVersionServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private DocumentFileStorageService documentFileStorageService;
+
     @InjectMocks
     private DocumentVersionService documentVersionService;
 
@@ -52,14 +60,23 @@ class DocumentVersionServiceTest {
         CreateDocumentVersionRequest request = new CreateDocumentVersionRequest();
         request.setTitle("Project Plan");
         request.setOwner("ownerUser");
-        request.setContent("New content for version 2");
+
+        MultipartFile file = new MockMultipartFile(
+                "file",
+                "v2-plan.pdf",
+                "application/pdf",
+                "new-file".getBytes()
+        );
 
         User loggedUser = User.builder().username("authorUser").build();
         User owner = User.builder().username("ownerUser").build();
 
         DocumentVersion activeVersion = DocumentVersion.builder()
                 .versionNumber(1)
-                .content("Old content")
+                .filePath("/uploads/documents/1/v1-plan.pdf")
+                .originalFileName("v1-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(100L)
                 .status(VersionStatus.APPROVED)
                 .createdBy(owner)
                 .build();
@@ -69,6 +86,7 @@ class DocumentVersionServiceTest {
                 .createdBy(owner)
                 .activeVersion(activeVersion)
                 .build();
+        document.setId(1L);
 
         DocumentMember membership = DocumentMember.builder()
                 .document(document)
@@ -76,10 +94,21 @@ class DocumentVersionServiceTest {
                 .role(DocumentRole.AUTHOR)
                 .build();
 
+        DocumentFileStorageService.StoredFileData storedFile =
+                new DocumentFileStorageService.StoredFileData(
+                        "/uploads/documents/1/v2-plan.pdf",
+                        "v2-plan.pdf",
+                        "application/pdf",
+                        222L
+                );
+
         DocumentVersion savedVersion = DocumentVersion.builder()
                 .document(document)
                 .versionNumber(2)
-                .content("New content for version 2")
+                .filePath("/uploads/documents/1/v2-plan.pdf")
+                .originalFileName("v2-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(222L)
                 .status(VersionStatus.DRAFT)
                 .createdBy(loggedUser)
                 .parentVersion(activeVersion)
@@ -90,10 +119,11 @@ class DocumentVersionServiceTest {
         when(userRepository.findByUsername("ownerUser")).thenReturn(Optional.of(owner));
         when(documentRepository.findByTitleAndCreatedBy("Project Plan", owner)).thenReturn(Optional.of(document));
         when(documentMemberRepository.findByDocumentAndUser(document, loggedUser)).thenReturn(Optional.of(membership));
+        when(documentFileStorageService.saveFile(1L, 2, file)).thenReturn(storedFile);
         when(documentVersionRepository.save(any(DocumentVersion.class))).thenReturn(savedVersion);
 
         CreateDocumentVersionResponse response =
-                documentVersionService.createDocumentVersion(request, "authorUser");
+                documentVersionService.createDocumentVersion(request, file, "authorUser");
 
         assertNotNull(response);
         assertEquals(200L, response.getId());
@@ -102,6 +132,7 @@ class DocumentVersionServiceTest {
         assertEquals(2, response.getVersion());
         assertEquals("Document version created successfully", response.getMessage());
 
+        verify(documentFileStorageService).saveFile(1L, 2, file);
         verify(documentVersionRepository).save(any(DocumentVersion.class));
     }
 
@@ -110,14 +141,23 @@ class DocumentVersionServiceTest {
         CreateDocumentVersionRequest request = new CreateDocumentVersionRequest();
         request.setTitle("Project Plan");
         request.setOwner("ownerUser");
-        request.setContent("New content");
+
+        MultipartFile file = new MockMultipartFile(
+                "file",
+                "v2-plan.pdf",
+                "application/pdf",
+                "new-file".getBytes()
+        );
 
         User loggedUser = User.builder().username("readerUser").build();
         User owner = User.builder().username("ownerUser").build();
 
         DocumentVersion activeVersion = DocumentVersion.builder()
                 .versionNumber(1)
-                .content("Old content")
+                .filePath("/uploads/documents/1/v1-plan.pdf")
+                .originalFileName("v1-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(100L)
                 .status(VersionStatus.APPROVED)
                 .createdBy(owner)
                 .build();
@@ -141,11 +181,12 @@ class DocumentVersionServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> documentVersionService.createDocumentVersion(request, "readerUser")
+                () -> documentVersionService.createDocumentVersion(request, file, "readerUser")
         );
 
         assertEquals("You don't have the rights to make changes to this document", exception.getMessage());
         verify(documentVersionRepository, never()).save(any(DocumentVersion.class));
+        verify(documentFileStorageService, never()).saveFile(anyLong(), anyInt(), any());
     }
 
     @Test
@@ -165,7 +206,10 @@ class DocumentVersionServiceTest {
         DocumentVersion version = DocumentVersion.builder()
                 .document(document)
                 .versionNumber(2)
-                .content("Version 2 content")
+                .filePath("/uploads/documents/1/v2-plan.pdf")
+                .originalFileName("v2-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(222L)
                 .status(VersionStatus.DRAFT)
                 .build();
         version.setId(2L);
@@ -217,7 +261,10 @@ class DocumentVersionServiceTest {
         DocumentVersion version = DocumentVersion.builder()
                 .document(document)
                 .versionNumber(3)
-                .content("Version 3 content")
+                .filePath("/uploads/documents/1/v3-plan.pdf")
+                .originalFileName("v3-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(333L)
                 .status(VersionStatus.DRAFT)
                 .build();
         version.setId(3L);
@@ -257,6 +304,10 @@ class DocumentVersionServiceTest {
 
         DocumentVersion v2 = DocumentVersion.builder()
                 .versionNumber(2)
+                .filePath("/uploads/documents/10/v2.pdf")
+                .originalFileName("v2.pdf")
+                .contentType("application/pdf")
+                .fileSize(222L)
                 .status(VersionStatus.APPROVED)
                 .createdBy(author)
                 .approvedBy(reviewer)
@@ -267,6 +318,10 @@ class DocumentVersionServiceTest {
 
         DocumentVersion v1 = DocumentVersion.builder()
                 .versionNumber(1)
+                .filePath("/uploads/documents/10/v1.pdf")
+                .originalFileName("v1.pdf")
+                .contentType("application/pdf")
+                .fileSize(111L)
                 .status(VersionStatus.REJECTED)
                 .createdBy(author)
                 .rejectedBy(reviewer)
@@ -293,4 +348,158 @@ class DocumentVersionServiceTest {
         assertEquals("REJECTED", response.get(1).getStatus());
         assertEquals("reviewerUser", response.get(1).getRejectedBy());
     }
+
+    @Test
+    void shouldThrowWhenFileIsMissingWhileCreatingDocumentVersion() {
+        CreateDocumentVersionRequest request = new CreateDocumentVersionRequest();
+        request.setTitle("Project Plan");
+        request.setOwner("ownerUser");
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> documentVersionService.createDocumentVersion(request, null, "authorUser")
+        );
+
+        assertEquals("File is required", exception.getMessage());
+
+        verify(userRepository, never()).findByUsername(anyString());
+        verify(documentRepository, never()).findByTitleAndCreatedBy(anyString(), any());
+        verify(documentMemberRepository, never()).findByDocumentAndUser(any(), any());
+        verify(documentVersionRepository, never()).save(any(DocumentVersion.class));
+        verify(documentFileStorageService, never()).saveFile(anyLong(), anyInt(), any());
+    }
+
+    @Test
+    void shouldThrowWhenApprovingNonDraftVersion() {
+        ApproveDocumentVersionRequest request = new ApproveDocumentVersionRequest();
+        request.setDocumentId(1L);
+        request.setVersionId(2L);
+        request.setComment("Looks good");
+
+        User reviewer = User.builder().username("reviewerUser").build();
+
+        Document document = Document.builder()
+                .title("Project Plan")
+                .build();
+        document.setId(1L);
+
+        DocumentVersion version = DocumentVersion.builder()
+                .document(document)
+                .versionNumber(2)
+                .filePath("/uploads/documents/1/v2-plan.pdf")
+                .originalFileName("v2-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(222L)
+                .status(VersionStatus.APPROVED)
+                .build();
+        version.setId(2L);
+
+        when(userRepository.findByUsername("reviewerUser")).thenReturn(Optional.of(reviewer));
+        when(documentVersionRepository.findByIdAndDocumentId(2L, 1L)).thenReturn(Optional.of(version));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> documentVersionService.approveVersion(request, "reviewerUser")
+        );
+
+        assertEquals("Only draft versions can be approved", exception.getMessage());
+
+        verify(documentMemberRepository, never()).findByDocumentAndUser(any(), any());
+        verify(documentVersionRepository, never()).save(any(DocumentVersion.class));
+        verify(documentRepository, never()).save(any(Document.class));
+    }
+
+    @Test
+    void shouldThrowWhenRejectingNonDraftVersion() {
+        RejectDocumentVersionRequest request = new RejectDocumentVersionRequest();
+        request.setDocumentId(1L);
+        request.setVersionId(3L);
+        request.setReason("Needs more changes");
+
+        User reviewer = User.builder().username("reviewerUser").build();
+
+        Document document = Document.builder()
+                .title("Project Plan")
+                .build();
+        document.setId(1L);
+
+        DocumentVersion version = DocumentVersion.builder()
+                .document(document)
+                .versionNumber(3)
+                .filePath("/uploads/documents/1/v3-plan.pdf")
+                .originalFileName("v3-plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(333L)
+                .status(VersionStatus.REJECTED)
+                .build();
+        version.setId(3L);
+
+        when(userRepository.findByUsername("reviewerUser")).thenReturn(Optional.of(reviewer));
+        when(documentVersionRepository.findByIdAndDocumentId(3L, 1L)).thenReturn(Optional.of(version));
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> documentVersionService.rejectVersion(request, "reviewerUser")
+        );
+
+        assertEquals("Only draft versions can be rejected", exception.getMessage());
+
+        verify(documentMemberRepository, never()).findByDocumentAndUser(any(), any());
+        verify(documentVersionRepository, never()).save(any(DocumentVersion.class));
+    }
+
+    @Test
+    void shouldDownloadVersionFileSuccessfully() {
+        Document document = Document.builder()
+                .title("Project Plan")
+                .build();
+        document.setId(10L);
+
+        DocumentVersion version = DocumentVersion.builder()
+                .document(document)
+                .versionNumber(2)
+                .filePath("/uploads/documents/10/v2-plan.pdf")
+                .originalFileName("plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(999L)
+                .status(VersionStatus.APPROVED)
+                .build();
+        version.setId(20L);
+
+        DocumentFileResponse fileResponse = new DocumentFileResponse(
+                "plan.pdf",
+                "application/pdf",
+                "dummy-bytes".getBytes()
+        );
+
+        when(documentVersionRepository.findByIdAndDocumentId(20L, 10L)).thenReturn(Optional.of(version));
+        when(documentFileStorageService.readFile(version)).thenReturn(fileResponse);
+
+        DocumentFileResponse response = documentVersionService.downloadVersionFile(20L, 10L);
+
+        assertNotNull(response);
+        assertEquals("plan.pdf", response.getFileName());
+        assertEquals("application/pdf", response.getContentType());
+        assertArrayEquals("dummy-bytes".getBytes(), response.getContent());
+
+        verify(documentVersionRepository).findByIdAndDocumentId(20L, 10L);
+        verify(documentFileStorageService).readFile(version);
+    }
+
+    @Test
+    void shouldThrowWhenDownloadingVersionFileThatDoesNotExist() {
+        when(documentVersionRepository.findByIdAndDocumentId(20L, 10L)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> documentVersionService.downloadVersionFile(20L, 10L)
+        );
+
+        assertEquals("Version not found", exception.getMessage());
+
+        verify(documentVersionRepository).findByIdAndDocumentId(20L, 10L);
+        verify(documentFileStorageService, never()).readFile(any(DocumentVersion.class));
+    }
+
+
 }
