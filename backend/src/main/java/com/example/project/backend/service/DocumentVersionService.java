@@ -8,16 +8,10 @@ import com.example.project.backend.dto.response.documentVersion.CreateDocumentVe
 import com.example.project.backend.dto.response.documentVersion.DocumentFileResponse;
 import com.example.project.backend.dto.response.documentVersion.DocumentVersionHistoryResponse;
 import com.example.project.backend.dto.response.documentVersion.RejectDocumentVersionResponse;
-import com.example.project.backend.model.entity.Document;
-import com.example.project.backend.model.entity.DocumentMember;
-import com.example.project.backend.model.entity.DocumentVersion;
-import com.example.project.backend.model.entity.User;
+import com.example.project.backend.model.entity.*;
 import com.example.project.backend.model.enums.DocumentRole;
 import com.example.project.backend.model.enums.VersionStatus;
-import com.example.project.backend.repository.DocumentMemberRepository;
-import com.example.project.backend.repository.DocumentRepository;
-import com.example.project.backend.repository.DocumentVersionRepository;
-import com.example.project.backend.repository.UserRepository;
+import com.example.project.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +28,7 @@ public class DocumentVersionService {
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
     private final DocumentFileStorageService documentFileStorageService;
 
     @Transactional
@@ -49,10 +44,7 @@ public class DocumentVersionService {
         User loggedUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
 
-        User documentOwner = userRepository.findByUsername(request.getOwner())
-                .orElseThrow(() -> new IllegalArgumentException("The owner of the document not found"));
-
-        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), documentOwner)
+        Document document = documentRepository.findById(request.getDocumentId())
                 .orElseThrow(() -> new IllegalArgumentException("Document not found"));
 
         DocumentMember documentMember = documentMemberRepository.findByDocumentAndUser(document, loggedUser)
@@ -67,7 +59,8 @@ public class DocumentVersionService {
             throw new IllegalArgumentException("Document has no active version");
         }
 
-        int newVersionNumber = currentActiveVersion.getVersionNumber() + 1;
+        document.setNumberOfVersions(document.getNumberOfVersions() + 1);
+        int newVersionNumber = document.getNumberOfVersions();
 
         DocumentFileStorageService.StoredFileData storedFile =
                 documentFileStorageService.saveFile(document.getId(), newVersionNumber, file);
@@ -120,6 +113,16 @@ public class DocumentVersionService {
             throw new IllegalArgumentException("Only reviewers can approve versions");
         }
 
+        if(request.getComment() != null){
+            Comment comment = Comment.builder()
+                    .version(version)
+                    .user(reviewer)
+                    .commentText(request.getComment())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            commentRepository.save(comment);
+        }
+
         version.setStatus(VersionStatus.APPROVED);
         version.setApprovedBy(reviewer);
         version.setApprovedAt(LocalDateTime.now());
@@ -163,11 +166,19 @@ public class DocumentVersionService {
             throw new IllegalArgumentException("Only reviewers can reject versions");
         }
 
+        Comment comment = Comment.builder()
+                .version(version)
+                .user(reviewer)
+                .commentText(request.getReason())
+                .createdAt(LocalDateTime.now())
+                .build();
+
         version.setStatus(VersionStatus.REJECTED);
         version.setRejectedBy(reviewer);
         version.setRejectedAt(LocalDateTime.now());
 
         documentVersionRepository.save(version);
+        commentRepository.save(comment);
 
         return new RejectDocumentVersionResponse(
                 document.getId(),

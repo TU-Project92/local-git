@@ -13,6 +13,8 @@ import java.util.Optional;
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> findByTitleAndCreatedBy(String title, User createdBy);
 
+    Optional<Document> findById(Long id);
+  
     @Query("""
     SELECT d
     FROM Document d

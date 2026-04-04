@@ -41,10 +41,17 @@ public class Document extends BaseEntity{
     @Builder.Default
     private List<DocumentVersion> versions = new ArrayList<>();
 
+    @Column(name = "number_of_versions", nullable = false)
+    private Integer numberOfVersions;
+
     @PrePersist
     public void prePersist() {
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
+        }
+
+        if (numberOfVersions == null) {
+            numberOfVersions = 1;
         }
     }
 }

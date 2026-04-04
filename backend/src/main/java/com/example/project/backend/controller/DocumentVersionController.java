@@ -32,14 +32,12 @@ public class DocumentVersionController {
 
     @PostMapping(value = "/createNew", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CreateDocumentVersionResponse> createVersion(
-            @RequestParam("title") String title,
-            @RequestParam("owner") String owner,
+            @RequestParam("documentId") Long documentId,
             @RequestParam("file") MultipartFile file,
             Authentication authentication
     ) {
         CreateDocumentVersionRequest request = new CreateDocumentVersionRequest();
-        request.setTitle(title);
-        request.setOwner(owner);
+        request.setDocumentId(documentId);
 
         CreateDocumentVersionResponse response =
                 documentVersionService.createDocumentVersion(request, file, authentication.getName());

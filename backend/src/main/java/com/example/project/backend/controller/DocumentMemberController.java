@@ -1,7 +1,9 @@
 package com.example.project.backend.controller;
 
 import com.example.project.backend.dto.request.documentMember.CreateDocumentMemberRequest;
+import com.example.project.backend.dto.request.documentMember.DeleteDocumentMemberRequest;
 import com.example.project.backend.dto.response.documentMember.CreateDocumentMemberResponse;
+import com.example.project.backend.dto.response.documentMember.DeleteDocumentMemberResponse;
 import com.example.project.backend.dto.response.documentMember.SharedUserResponse;
 import com.example.project.backend.service.DocumentMemberService;
 import jakarta.validation.Valid;
@@ -29,6 +31,16 @@ public class DocumentMemberController {
                 documentMemberService.createDocumentMember(request, authentication.getName());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @DeleteMapping("/deleteMember")
+    public ResponseEntity<DeleteDocumentMemberResponse> deleteDocumentMember(
+            @RequestBody @Valid DeleteDocumentMemberRequest request,
+            Authentication authentication
+            ) {
+        DeleteDocumentMemberResponse response = documentMemberService.deleteDocumentMember(request, authentication.getName());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/shared-users")

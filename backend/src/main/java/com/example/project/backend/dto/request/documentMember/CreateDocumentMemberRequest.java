@@ -9,8 +9,8 @@ import lombok.Setter;
 @Setter
 public class CreateDocumentMemberRequest {
 
-    @NotBlank(message = "You must specify the title of the document")
-    private String title;
+    //@NotBlank(message = "You must specify the id of the document")
+    private Long documentId;
 
     @NotBlank(message = "You must specify the role")
     private String role;
