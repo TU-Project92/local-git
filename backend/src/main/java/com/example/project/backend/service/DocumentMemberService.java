@@ -1,7 +1,9 @@
 package com.example.project.backend.service;
 
 import com.example.project.backend.dto.request.documentMember.CreateDocumentMemberRequest;
+import com.example.project.backend.dto.request.documentMember.DeleteDocumentMemberRequest;
 import com.example.project.backend.dto.response.documentMember.CreateDocumentMemberResponse;
+import com.example.project.backend.dto.response.documentMember.DeleteDocumentMemberResponse;
 import com.example.project.backend.dto.response.documentMember.SharedUserResponse;
 import com.example.project.backend.model.entity.Document;
 import com.example.project.backend.model.entity.DocumentMember;
@@ -38,9 +40,9 @@ public class DocumentMemberService {
 
         //The user who will be granted a role
         User userMember = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        Document document = documentRepository.findByTitleAndCreatedBy(request.getTitle(), owner)
+        Document document = documentRepository.findById(request.getDocumentId())
                 .orElseThrow(() -> new IllegalArgumentException("Document not found"));
 
         //Role of the logged user in the document
@@ -71,6 +73,50 @@ public class DocumentMemberService {
                 document.getTitle(),
                 "Document role added successfully"
         );
+    }
+
+    @Transactional
+    public DeleteDocumentMemberResponse deleteDocumentMember(DeleteDocumentMemberRequest request, String username){
+
+        User loggedUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("No logged user found"));
+
+        Document document = documentRepository.findById(request.getDocumentId())
+                .orElseThrow(() -> new IllegalArgumentException("No document found"));
+
+        //Role of the logged user in the document
+        DocumentMember loggedMember = null;
+        if(loggedUser.getSystemRole() != SystemRole.ADMIN){
+            loggedMember = documentMemberRepository.findByDocumentAndUser(document, loggedUser)
+                    .orElseThrow(() -> new IllegalArgumentException("You don't have access to this document"));
+        }
+
+        if(loggedUser.getSystemRole() != SystemRole.ADMIN && loggedMember.getRole() != DocumentRole.OWNER){
+            throw new IllegalArgumentException("You don't have the rights to change roles for this document");
+        }
+
+        //The one we will remove from the document
+        User member = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        DocumentMember documentMember = documentMemberRepository.findByDocumentAndUser(document, member)
+                .orElseThrow(() -> new IllegalArgumentException("The user has no role in the document"));
+
+        if(loggedMember == documentMember){
+            throw new IllegalArgumentException("You can't remove yourself from the document");
+        }
+
+        DeleteDocumentMemberResponse response = new DeleteDocumentMemberResponse(
+                member.getUsername(),
+                documentMember.getRole().toString(),
+                document.getId(),
+                "You removed the user successfully"
+        );
+
+        documentMemberRepository.delete(documentMember);
+
+        return response;
+
     }
 
     @Transactional(readOnly = true)

@@ -10,4 +10,6 @@ import java.util.Optional;
 @Repository
 public interface DocumentRepository extends JpaRepository<Document, Long> {
     Optional<Document> findByTitleAndCreatedBy(String title, User createdBy);
+
+    Optional<Document> findById(Long id);
 }

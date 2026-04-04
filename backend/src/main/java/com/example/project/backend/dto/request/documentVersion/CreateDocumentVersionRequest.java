@@ -9,10 +9,7 @@ import lombok.Setter;
 @Setter
 public class CreateDocumentVersionRequest {
 
-    @NotBlank(message = "Title is required")
-    @Size(max = 200, message = "Title must no exceed 200 characters")
-    private String title;
+    //@NotBlank(message = "Id of the document is required")
+    private Long documentId;
 
-    @NotBlank(message = "Please specify the owner of the document")
-    private String owner;
 }
