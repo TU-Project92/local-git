@@ -1,4 +1,3 @@
-import com.example.project.backend.dto.request.document.CreateFirstDocumentRequest;
 import com.example.project.backend.dto.response.document.CreateFirstDocumentResponse;
 import com.example.project.backend.dto.response.document.DocumentListResponse;
 import com.example.project.backend.model.entity.Document;
@@ -11,12 +10,15 @@ import com.example.project.backend.repository.DocumentMemberRepository;
 import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.DocumentVersionRepository;
 import com.example.project.backend.repository.UserRepository;
+import com.example.project.backend.service.DocumentFileStorageService;
 import com.example.project.backend.service.DocumentService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
@@ -39,15 +41,20 @@ class DocumentServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private DocumentFileStorageService documentFileStorageService;
+
     @InjectMocks
     private DocumentService documentService;
 
     @Test
     void shouldCreateFirstDocumentSuccessfully() {
-        CreateFirstDocumentRequest request = new CreateFirstDocumentRequest();
-        request.setTitle("Project Plan");
-        request.setDescription("Initial project document");
-        request.setContent("Version 1 content");
+        MultipartFile file = new MockMultipartFile(
+                "file",
+                "plan.pdf",
+                "application/pdf",
+                "dummy-content".getBytes()
+        );
 
         User loggedUser = User.builder()
                 .username("ivan123")
@@ -61,10 +68,21 @@ class DocumentServiceTest {
                 .build();
         savedDocument.setId(10L);
 
+        DocumentFileStorageService.StoredFileData storedFile =
+                new DocumentFileStorageService.StoredFileData(
+                        "/uploads/documents/10/v1-plan.pdf",
+                        "plan.pdf",
+                        "application/pdf",
+                        123L
+                );
+
         DocumentVersion savedVersion = DocumentVersion.builder()
                 .document(savedDocument)
                 .versionNumber(1)
-                .content("Version 1 content")
+                .filePath("/uploads/documents/10/v1-plan.pdf")
+                .originalFileName("plan.pdf")
+                .contentType("application/pdf")
+                .fileSize(123L)
                 .status(VersionStatus.DRAFT)
                 .createdBy(loggedUser)
                 .build();
@@ -72,9 +90,15 @@ class DocumentServiceTest {
 
         when(userRepository.findByUsername("ivan123")).thenReturn(Optional.of(loggedUser));
         when(documentRepository.save(any(Document.class))).thenReturn(savedDocument);
+        when(documentFileStorageService.saveFile(10L, 1, file)).thenReturn(storedFile);
         when(documentVersionRepository.save(any(DocumentVersion.class))).thenReturn(savedVersion);
 
-        CreateFirstDocumentResponse response = documentService.createFirstDocument(request, "ivan123");
+        CreateFirstDocumentResponse response = documentService.createFirstDocument(
+                "Project Plan",
+                "Initial project document",
+                file,
+                "ivan123"
+        );
 
         assertNotNull(response);
         assertEquals(10L, response.getId());
@@ -87,29 +111,29 @@ class DocumentServiceTest {
         verify(userRepository).findByUsername("ivan123");
         verify(documentRepository, atLeastOnce()).save(any(Document.class));
         verify(documentMemberRepository).save(any(DocumentMember.class));
-        verify(documentVersionRepository, atLeastOnce()).save(any(DocumentVersion.class));
+        verify(documentFileStorageService).saveFile(10L, 1, file);
+        verify(documentVersionRepository).save(any(DocumentVersion.class));
     }
 
     @Test
-    void shouldThrowWhenLoggedUserNotFoundWhileCreatingFirstDocument() {
-        CreateFirstDocumentRequest request = new CreateFirstDocumentRequest();
-        request.setTitle("Project Plan");
-        request.setDescription("Initial project document");
-        request.setContent("Version 1 content");
-
-        when(userRepository.findByUsername("missingUser")).thenReturn(Optional.empty());
-
+    void shouldThrowWhenFileIsMissingWhileCreatingFirstDocument() {
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> documentService.createFirstDocument(request, "missingUser")
+                () -> documentService.createFirstDocument(
+                        "Project Plan",
+                        "Initial project document",
+                        null,
+                        "ivan123"
+                )
         );
 
-        assertEquals("Logged user not found", exception.getMessage());
+        assertEquals("File is required", exception.getMessage());
 
-        verify(userRepository).findByUsername("missingUser");
+        verify(userRepository, never()).findByUsername(anyString());
         verify(documentRepository, never()).save(any(Document.class));
         verify(documentMemberRepository, never()).save(any(DocumentMember.class));
         verify(documentVersionRepository, never()).save(any(DocumentVersion.class));
+        verify(documentFileStorageService, never()).saveFile(anyLong(), anyInt(), any());
     }
 
     @Test
@@ -121,7 +145,10 @@ class DocumentServiceTest {
 
         DocumentVersion activeVersion = DocumentVersion.builder()
                 .versionNumber(2)
-                .content("Approved content")
+                .filePath("/uploads/documents/20/v2-spec.pdf")
+                .originalFileName("spec.pdf")
+                .contentType("application/pdf")
+                .fileSize(456L)
                 .status(VersionStatus.APPROVED)
                 .createdBy(creator)
                 .build();
@@ -151,7 +178,9 @@ class DocumentServiceTest {
         assertEquals("AUTHOR", response.get(0).getRole());
         assertEquals("ownerUser", response.get(0).getCreatedBy());
         assertEquals(2, response.get(0).getActiveVersionNumber());
-        assertEquals("Approved content", response.get(0).getContent());
+        assertEquals("spec.pdf", response.get(0).getOriginalFileName());
+        assertEquals("application/pdf", response.get(0).getContentType());
+        assertEquals(456L, response.get(0).getFileSize());
 
         verify(documentMemberRepository).findMyDocumentsByUsernameAndSearch("ivan123", "Project");
     }
@@ -168,4 +197,5 @@ class DocumentServiceTest {
 
         verify(documentMemberRepository).findMyDocumentsByUsernameAndSearch("ivan123", "missing");
     }
+
 }
