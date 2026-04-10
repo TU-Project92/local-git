@@ -36,6 +36,10 @@ public class User extends BaseEntity{
     @Column(nullable = false)
     private boolean enabled = false;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean active = true;
+
     @Lob
     @Column(name = "my_info", columnDefinition = "LONGTEXT")
     private String myInfo;
