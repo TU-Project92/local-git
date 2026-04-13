@@ -28,6 +28,10 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new DisabledException("Please verify your email first");
         }
 
+        if (!user.isActive()) {
+            throw new DisabledException("Your account has been deactivated by an administrator");
+        }
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
