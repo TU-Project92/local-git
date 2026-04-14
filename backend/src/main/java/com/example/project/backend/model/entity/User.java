@@ -40,6 +40,10 @@ public class User extends BaseEntity{
     @Builder.Default
     private boolean active = true;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "linked_user_id")
+    private User linkedUser;
+
     @Lob
     @Column(name = "my_info", columnDefinition = "LONGTEXT")
     private String myInfo;
