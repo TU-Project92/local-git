@@ -16,6 +16,8 @@ import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.DocumentVersionRepository;
 import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,8 @@ public class DocumentService {
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
     private final DocumentFileStorageService documentFileStorageService;
+    private static final Logger logger = LoggerFactory.getLogger(DocumentService.class);
+
 
     @Transactional
     public CreateFirstDocumentResponse createFirstDocument(
@@ -41,11 +45,15 @@ public class DocumentService {
     ) {
 
         if (file == null || file.isEmpty()) {
+            logger.error("Cannot create document - no file found");
             throw new IllegalArgumentException("File is required");
         }
 
         User loggedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Cannot create document - logged user with username {} not found", username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         Document document = Document.builder()
                 .title(title)
@@ -83,6 +91,8 @@ public class DocumentService {
         savedDocument.setActiveVersion(savedVersion);
         documentRepository.save(savedDocument);
 
+        logger.info("Successfully created document with id {} by user with username {}", savedDocument.getId(), username);
+
         return new CreateFirstDocumentResponse(
                 savedDocument.getId(),
                 savedDocument.getTitle(),
@@ -97,6 +107,8 @@ public class DocumentService {
     public List<DocumentListResponse> getLoggedUserDocuments(String username, String search) {
         List<DocumentMember> memberships =
                 documentMemberRepository.findMyDocumentsByUsernameAndSearch(username, search);
+
+        logger.info("User with username {} searched their documents by {}", username, search);
 
         return memberships.stream()
                 .map(member -> new DocumentListResponse(
@@ -123,16 +135,25 @@ public class DocumentService {
 
     @Transactional(readOnly = true)
     public DocumentDetailsResponse getDocumentDetails(Long documentId, String username) {
+        String errorMsg = "Cannot get document details -";
+
         User loggedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("{} logged user with username not found", errorMsg, username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         Document document = documentRepository.findDetailsById(documentId)
-                .orElseThrow(() -> new IllegalArgumentException("Document not found"));
+                .orElseThrow(() -> {
+                    logger.error("{} document with id not found", errorMsg, documentId);
+                    return new IllegalArgumentException("Document not found");
+                });
 
         DocumentMember currentMembership = documentMemberRepository.findByDocumentAndUser(document, loggedUser)
                 .orElse(null);
 
         if (loggedUser.getSystemRole() != SystemRole.ADMIN && currentMembership == null) {
+            logger.error("{} user with username {} does not have access to document with id {}", errorMsg, username, documentId);
             throw new IllegalArgumentException("You don't have access to this document");
         }
 
@@ -149,6 +170,8 @@ public class DocumentService {
                 .toList();
 
         DocumentVersion activeVersion = document.getActiveVersion();
+
+        logger.info("User with username {} successfully accessed details of document with id {}", username, documentId);
 
         return new DocumentDetailsResponse(
                 document.getId(),

@@ -13,6 +13,8 @@ import com.example.project.backend.model.enums.SystemRole;
 import com.example.project.backend.repository.UserRepository;
 import com.example.project.backend.repository.VerificationTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +31,7 @@ public class UserService {
     private final EmailService emailService;
     private final VerificationTokenRepository verificationTokenRepository;
     private final PasswordEncoder passwordEncoder;
+    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     public UserRegisterResponse register(UserRegisterRequest request) {
         validateRegistration(request);
@@ -52,6 +55,8 @@ public class UserService {
 
         emailService.sendVerificationEmail(savedUser.getEmail(), token);
 
+        logger.info("Registered user with id {} and username {}", savedUser.getId(), savedUser.getUsername());
+
         return new UserRegisterResponse(
                 savedUser.getId(),
                 savedUser.getUsername(),
@@ -62,24 +67,32 @@ public class UserService {
 
     public String forgotPassword(ForgotPasswordRequest request) {
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            logger.error("Passwords no not match");
             throw new IllegalArgumentException("Passwords do not match");
         }
 
         User user = userRepository.findByUsername(request.getUsernameOrEmail())
                 .or(() -> userRepository.findByEmail(request.getUsernameOrEmail()))
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("User not found");
+                    return new IllegalArgumentException("User not found");
+                });
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        logger.info("Successful change of password of user with id {} and username {}", user.getId(), user.getUsername());
 
         return "Password changed successfully";
     }
 
     private void validateRegistration(UserRegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
+            logger.error("Unsuccessful registration - username {}already exists", request.getUsername());
             throw new IllegalArgumentException("Username already exists");
         }
         if (userRepository.existsByEmail(request.getEmail())) {
+            logger.error("Unsuccessful registration - email {}already exists", request.getEmail());
             throw new IllegalArgumentException("Email already exists");
         }
     }
@@ -111,10 +124,18 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(Long userId, String loggedUsername) {
         userRepository.findByUsername(loggedUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Cannot get user profile - logged user  with username {} not found", loggedUsername);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> {
+                    logger.error("Cannot get user profile - user with id {} not found", userId);
+                    return new IllegalArgumentException("User not found");
+                });
+
+        logger.info("User with id {} found", userId);
 
         return new UserProfileResponse(
                 user.getId(),
@@ -130,9 +151,14 @@ public class UserService {
     @Transactional
     public AddMyInfoResponse addMyInfo(String info, String username){
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("User with username " + username + " not found");
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         user.setMyInfo(info);
+
+        logger.info("User with id {} and username {} successfully updated personal information", user.getId(), user.getUsername());
 
         return new AddMyInfoResponse(
                 user.getId(),
@@ -143,12 +169,18 @@ public class UserService {
 
     public String getMyInfo(String username){
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Cannot obtain personal information - user with username {} not found", username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         String info = user.getMyInfo();
         if(info == null){
+            logger.error("No personal information found for user with id {}", user.getId());
             throw new IllegalArgumentException("No personal information found");
         }
+
+        logger.info("Successfully retrieved personal information for user with id {}", user.getId());
 
         return info;
     }
@@ -156,14 +188,20 @@ public class UserService {
     @Transactional
     public UpdateMyInfoResponse updateMyInfo(String info, String username){
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Cannot update personal information - user with username {} not found", username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         String currentInfo = user.getMyInfo();
         if(currentInfo == null){
+            logger.error("Unsuccessful updating of personal information of user with id {} - current personal information not found", user.getId());
             throw new IllegalArgumentException("You must add personal information before you update it");
         }
 
         user.setMyInfo(info);
+
+        logger.info("Successful updating of personal information of user with id {}", user.getId());
 
         return new UpdateMyInfoResponse(
                 user.getId(),
@@ -175,11 +213,17 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<UserSearchResponse> getAllUsers(String username){
         User loggedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful retrieval of all users - user with username {} not found", username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         if(loggedUser.getSystemRole() != SystemRole.ADMIN){
+            logger.error("Unsuccessful retrieval of all users - user with id {} is not an admin", loggedUser.getId());
             throw new IllegalArgumentException("You don't have access to this information");
         }
+
+        logger.info("Successful retrieval of all users by user with id {}", loggedUser.getId());
 
         return userRepository.findAll()
                 .stream()

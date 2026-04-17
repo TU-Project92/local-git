@@ -2,6 +2,8 @@ package com.example.project.backend.service;
 
 import com.example.project.backend.dto.response.documentVersion.DocumentFileResponse;
 import com.example.project.backend.model.entity.DocumentVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,8 @@ import java.util.UUID;
 public class DocumentFileStorageService {
 
     private final Path storageRoot;
+    private static final Logger logger = LoggerFactory.getLogger(DocumentFileStorageService.class);
+
 
     public DocumentFileStorageService(
             @Value("${app.storage.documents-dir:documents-storage}") String storageDirectory
@@ -39,6 +43,8 @@ public class DocumentFileStorageService {
             Path targetPath = documentDirectory.resolve("version-" + versionNumber + "_" + safeFileName);
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
+            logger.info("Successfully stored file to version with number {} of document with id {}", versionNumber, documentId);
+
             return new StoredFileData(
                     targetPath.toString(),
                     originalFileName,
@@ -46,6 +52,7 @@ public class DocumentFileStorageService {
                     file.getSize()
             );
         } catch (IOException ex) {
+            logger.error("Failed to store uploaded file to version with number {} of document with id {}", versionNumber, documentId);
             throw new UncheckedIOException("Failed to store uploaded file", ex);
         }
     }
@@ -63,12 +70,15 @@ public class DocumentFileStorageService {
                 contentType = "application/octet-stream";
             }
 
+            logger.error("Successfully read stored file of version with id {} of document with id {}", version.getId(), version.getDocument().getId());
+
             return new DocumentFileResponse(
                     version.getOriginalFileName(),
                     contentType,
                     content
             );
         } catch (IOException ex) {
+            logger.error("Failed to read stored file of version with id {} of document with id {}", version.getId(), version.getDocument().getId());
             throw new UncheckedIOException("Failed to read stored file", ex);
         }
     }
