@@ -1,6 +1,8 @@
 package com.example.project.backend.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 public class EmailService {
 
     private final JavaMailSender mailSender;
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
 
     public void sendVerificationEmail(String to, String token) {
 
@@ -22,5 +25,7 @@ public class EmailService {
         message.setText("Click the link to activate your account:\n" + link);
 
         mailSender.send(message);
+
+        logger.info("Successfully sent verification email to {}", to);
     }
 }

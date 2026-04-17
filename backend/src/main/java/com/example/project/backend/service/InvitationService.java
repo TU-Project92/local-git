@@ -15,6 +15,8 @@ import com.example.project.backend.repository.DocumentMemberRepository;
 import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,26 +32,41 @@ public class InvitationService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final DocumentMemberService documentMemberService;
+    private static final Logger logger = LoggerFactory.getLogger(InvitationService.class);
 
     @Transactional
     public InvitationResponse inviteUser(String ownerUsername, InviteUserRequest request) {
         User owner = userRepository.findByUsername(ownerUsername)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful invitation of user - logged user with username {} not found", ownerUsername);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         User targetUser = userRepository.findByUsername(request.getUsername())
-                .orElseThrow(() -> new IllegalArgumentException("Target user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful invitation of user - target user with username {} not found", request.getUsername());
+                    return new IllegalArgumentException("Target user not found");
+                });
 
         Document document = documentRepository.findById(request.getDocumentId())
-                .orElseThrow(() -> new IllegalArgumentException("Document not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful invitation of user - document with id {} not found", request.getDocumentId());
+                    return new IllegalArgumentException("Document not found");
+                });
 
         DocumentMember ownerMember = documentMemberRepository.findByDocumentAndUser(document, owner)
-                .orElseThrow(() -> new IllegalArgumentException("You do not have access to this document"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful invitation of user - user with id {} does not have access to document with id {}", owner.getId(), document.getId());
+                    return new IllegalArgumentException("You do not have access to this document");
+                });
 
         if (ownerMember.getRole() != DocumentRole.OWNER) {
+            logger.error("Unsuccessful invitation of user - user with id {} is not owner of document with id {}", owner.getId(), document.getId());
             throw new IllegalArgumentException("Only the owner can invite users");
         }
 
         if (owner.getId().equals(targetUser.getId())) {
+            logger.error("Unsuccessful invitation of user - user with id {} tried to invite themself", owner.getId());
             throw new IllegalArgumentException("You cannot invite yourself");
         }
 
@@ -62,6 +79,7 @@ public class InvitationService {
                 .existsByDocumentAndRecipientAndStatus(document, targetUser, InvitationStatus.PENDING);
 
         if (hasPendingInvitation) {
+            logger.error("Unsuccessful invitation of user - user with id {} already has a pending invitation for document with id {}", targetUser.getId(), document.getId());
             throw new IllegalArgumentException("This user already has a pending invitation for this document");
         }
 
@@ -69,6 +87,7 @@ public class InvitationService {
         try {
             invitedRole = DocumentRole.valueOf(request.getRole().toUpperCase());
         } catch (IllegalArgumentException ex) {
+            logger.error("Unsuccessful invitation of user - invalid document role");
             throw new IllegalArgumentException("Invalid document role");
         }
 
@@ -90,6 +109,8 @@ public class InvitationService {
                 NotificationType.ROLE_REQUEST
         );
 
+        logger.info("User with id {} was successfully invited to join document with id {} by user with id {}", targetUser.getId(), document.getId(), owner.getId());
+
         return new InvitationResponse(
                 savedInvitation.getId(),
                 document.getId(),
@@ -105,16 +126,24 @@ public class InvitationService {
     @Transactional
     public ActionResponse accept(Long invitationId, String username) {
         User loggedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful acceptance of invitation - logged user with username {} not found", username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         DocumentInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+                .orElseThrow(() -> {
+                    logger.error("Unsuccessful acceptance of invitation - invitation with id {} not found", invitationId);
+                    return new IllegalArgumentException("Invitation not found");
+                });
 
         if (!invitation.getRecipient().getId().equals(loggedUser.getId())) {
+            logger.error("Unsuccessful acceptance of invitation - logged user id {} does not equal recipient id {}", loggedUser.getId(), invitation.getRecipient().getId());
             throw new IllegalArgumentException("You cannot accept this invitation");
         }
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
+            logger.error("Unsuccessful acceptance of invitation - invitation with id {} not found", invitation.getId());
             throw new IllegalArgumentException("This invitation is no longer pending");
         }
 
@@ -136,22 +165,34 @@ public class InvitationService {
                 NotificationType.ROLE_ACCEPTED
         );
 
+        logger.error("User with id {} successfully accepted role {} in document with id {}", loggedUser.getId(), invitation.getRole().toString().toLowerCase(), invitation.getDocument().getId());
+
         return new ActionResponse("Invitation accepted successfully");
     }
 
     @Transactional
     public ActionResponse reject(Long invitationId, String username) {
+        String errorMesg = "Unsuccessful rejection of invitation -";
+
         User loggedUser = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("Logged user not found"));
+                .orElseThrow(() -> {
+                    logger.error("{} logged user with username {} not found", errorMesg, username);
+                    return new IllegalArgumentException("Logged user not found");
+                });
 
         DocumentInvitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new IllegalArgumentException("Invitation not found"));
+                .orElseThrow(() -> {
+                    logger.error("{} invitation with id {} not found", errorMesg, invitationId);
+                    return new IllegalArgumentException("Invitation not found");
+                });
 
         if (!invitation.getRecipient().getId().equals(loggedUser.getId())) {
+            logger.error("{} logged user id {} does not match recipient id {}", errorMesg, loggedUser.getId(), invitation.getRecipient().getId());
             throw new IllegalArgumentException("You cannot reject this invitation");
         }
 
         if (invitation.getStatus() != InvitationStatus.PENDING) {
+            logger.error("{} invitation with id {} is no longer pending", errorMesg, invitation.getId());
             throw new IllegalArgumentException("This invitation is no longer pending");
         }
 
@@ -164,6 +205,8 @@ public class InvitationService {
                         invitation.getDocument().getTitle() + "\"",
                 NotificationType.ROLE_REJECTED
         );
+
+        logger.info("User with id {} successfully rejected invitation with id {} to document with id {}", loggedUser.getId(), invitation.getId(), invitation.getDocument().getId());
 
         return new ActionResponse("Invitation rejected successfully");
     }

@@ -14,6 +14,8 @@ import com.example.project.backend.service.CustomUserDetailsService;
 import com.example.project.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -34,6 +36,7 @@ public class AuthController {
     private final VerificationTokenRepository verificationTokenRepository;
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @PostMapping("/register")
     public ResponseEntity<UserRegisterResponse> register(
@@ -81,6 +84,8 @@ public class AuthController {
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
         String jwtToken = jwtService.generateToken(userDetails);
+
+        logger.info("Login successful of user with id {} and username {}", user.getId(), user.getUsername());
 
         UserLoginResponse response = new UserLoginResponse(
                 jwtToken,

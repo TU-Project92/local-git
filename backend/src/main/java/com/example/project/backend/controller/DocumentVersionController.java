@@ -9,6 +9,8 @@ import com.example.project.backend.model.entity.DocumentVersion;
 import com.example.project.backend.service.DocumentVersionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -25,6 +27,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentVersionController {
 
+    private static final Logger logger = LoggerFactory.getLogger(DocumentVersionController.class);
     private final DocumentVersionService documentVersionService;
 
     @PostMapping(value = "/createNew", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -66,10 +69,13 @@ public class DocumentVersionController {
 
     @PostMapping("/history")
     public ResponseEntity<List<DocumentVersionHistoryResponse>> getVersionHistory(
-            @RequestBody @Valid DocumentVersionHistoryRequest request
+            @RequestBody @Valid DocumentVersionHistoryRequest request,
+            Authentication authentication
     ) {
         List<DocumentVersionHistoryResponse> response =
                 documentVersionService.getVersionHistory(request.getDocumentId());
+
+        logger.info("Version history of document with id {} accessed by user with username {}", request.getDocumentId(), authentication.getName());
 
         return ResponseEntity.ok(response);
     }
