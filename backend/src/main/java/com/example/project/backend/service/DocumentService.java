@@ -1,9 +1,11 @@
 package com.example.project.backend.service;
 
+import com.example.project.backend.dto.response.admin.AdminDocumentTableResponse;
 import com.example.project.backend.dto.response.document.CreateFirstDocumentResponse;
 import com.example.project.backend.dto.response.document.DocumentDetailsResponse;
 import com.example.project.backend.dto.response.document.DocumentListResponse;
 import com.example.project.backend.dto.response.document.DocumentTeamMemberResponse;
+import com.example.project.backend.dto.response.documentVersion.DeleteDocumentResponse;
 import com.example.project.backend.model.entity.Document;
 import com.example.project.backend.model.entity.DocumentMember;
 import com.example.project.backend.model.entity.DocumentVersion;
@@ -29,6 +31,7 @@ import java.util.List;
 public class DocumentService {
 
     private final DocumentRepository documentRepository;
+    private final UserService userService;
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
@@ -186,5 +189,36 @@ public class DocumentService {
                 activeVersion != null ? activeVersion.getFileSize() : null,
                 teamMembers
         );
+    }
+
+    @Transactional
+    public DeleteDocumentResponse deleteDocument(Long documentId, String adminUsername) {
+        User admin = userService.getValidatedAdmin(adminUsername, "Cannot delete document -");
+
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> {
+                    logger.error("Cannot delete document - document with id {} not found", documentId);
+                    return new IllegalArgumentException("Document not found.");
+                });
+
+        Long deletedDocumentId = document.getId();
+        String deletedTitle = document.getTitle();
+
+        documentRepository.delete(document);
+
+        logger.info("Successfully deleted document with id {}", deletedDocumentId);
+
+        return new DeleteDocumentResponse(
+                deletedDocumentId,
+                deletedTitle,
+                "Document deleted successfully."
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<AdminDocumentTableResponse> getAdminDocuments(String adminUsername, String search) {
+        User admin = userService.getValidatedAdmin(adminUsername, "Cannot load admin documents -");
+        logger.info("Admin with id {} loaded admin documents table with search '{}'", admin.getId(), search);
+        return documentRepository.findAllForAdminTable(search);
     }
 }

@@ -2,11 +2,7 @@ package com.example.project.backend.service;
 
 import com.example.project.backend.dto.request.user.ForgotPasswordRequest;
 import com.example.project.backend.dto.request.user.UserRegisterRequest;
-import com.example.project.backend.dto.response.user.AddMyInfoResponse;
-import com.example.project.backend.dto.response.user.UpdateMyInfoResponse;
-import com.example.project.backend.dto.response.user.UserProfileResponse;
-import com.example.project.backend.dto.response.user.UserRegisterResponse;
-import com.example.project.backend.dto.response.user.UserSearchResponse;
+import com.example.project.backend.dto.response.user.*;
 import com.example.project.backend.model.entity.User;
 import com.example.project.backend.model.enums.SystemRole;
 import com.example.project.backend.repository.UserRepository;
@@ -215,5 +211,82 @@ public class UserService {
                         user.getEmail()
                 ))
                 .toList();
+    }
+
+    public User getValidatedAdmin(String adminUsername, String errorMsgPrefix) {
+        User admin = userRepository.findByUsername(adminUsername)
+                .orElseThrow(() -> {
+                    logger.error("{} admin with username {} not found", errorMsgPrefix, adminUsername);
+                    return new IllegalArgumentException("Admin not found.");
+                });
+
+        if (admin.getSystemRole() != SystemRole.ADMIN) {
+            logger.error("{} user with id {} is not an admin", errorMsgPrefix, admin.getId());
+            throw new IllegalArgumentException("Only admins can access this resource.");
+        }
+
+        return admin;
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserSearchResponse> searchUsersForAdmin(String adminUsername, String search) {
+        User admin = getValidatedAdmin(adminUsername, "Cannot search users for admin -");
+
+        logger.info("Admin with id {} searched users by '{}'", admin.getId(), search);
+
+        return userRepository.searchUsers(search)
+                .stream()
+                .map(user -> new UserSearchResponse(
+                        user.getId(),
+                        user.getUsername(),
+                        user.getFirstName(),
+                        user.getLastName(),
+                        user.getEmail()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public UserDeactivationResponse deactivateUser(Long userId, String adminUsername) {
+        User admin = getValidatedAdmin(adminUsername, "Cannot deactivate user -");
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.error("Cannot deactivate user - user with id {} not found", userId);
+                    return new IllegalArgumentException("User not found.");
+                });
+
+        user.setActive(false);
+
+        logger.info("Admin with id {} successfully deactivated the account of user with id {}", admin.getId(), userId);
+
+        return new UserDeactivationResponse(
+                user.getId(),
+                user.getUsername(),
+                user.isActive(),
+                "User account is deactivated successfully."
+        );
+    }
+
+    @Transactional
+    public UserActivationResponse activateUser(Long userId, String adminUsername) {
+        User admin = getValidatedAdmin(adminUsername, "Cannot activate user -");
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    logger.error("Cannot activate user - user with id {} not found", userId);
+                    return new IllegalArgumentException("User not found.");
+                });
+
+        user.setActive(true);
+
+        logger.info("Admin with id {} successfully activated the account of user with id {}", admin.getId(), userId);
+
+        return new UserActivationResponse(
+                user.getId(),
+                user.getUsername(),
+                user.isActive(),
+                "User account is activated successfully."
+        );
     }
 }

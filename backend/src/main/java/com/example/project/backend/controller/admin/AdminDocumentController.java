@@ -3,7 +3,8 @@ package com.example.project.backend.controller.admin;
 import com.example.project.backend.dto.response.admin.AdminDocumentTableResponse;
 import com.example.project.backend.dto.response.documentVersion.DeleteDocumentResponse;
 import com.example.project.backend.dto.response.documentVersion.DeleteDocumentVersionResponse;
-import com.example.project.backend.service.AdminService;
+import com.example.project.backend.service.DocumentService;
+import com.example.project.backend.service.DocumentVersionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -18,7 +19,7 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminDocumentController {
 
-    private final AdminService adminService;
+    private final DocumentService documentService;
 
     @GetMapping
     public ResponseEntity<List<AdminDocumentTableResponse>> getAdminDocuments(
@@ -26,19 +27,10 @@ public class AdminDocumentController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(
-                adminService.getAdminDocuments(authentication.getName(), search)
+                documentService.getAdminDocuments(authentication.getName(), search)
         );
     }
 
-    @DeleteMapping("/versions/{versionId}")
-    public ResponseEntity<DeleteDocumentVersionResponse> deleteDocumentVersion(
-            @PathVariable Long versionId,
-            Authentication authentication
-    ) {
-        return ResponseEntity.ok(
-                adminService.deleteDocumentVersion(versionId, authentication.getName())
-        );
-    }
 
     @DeleteMapping("/{documentId}")
     public ResponseEntity<DeleteDocumentResponse> deleteDocument(
@@ -46,7 +38,7 @@ public class AdminDocumentController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(
-                adminService.deleteDocument(documentId, authentication.getName())
+                documentService.deleteDocument(documentId, authentication.getName())
         );
     }
 }

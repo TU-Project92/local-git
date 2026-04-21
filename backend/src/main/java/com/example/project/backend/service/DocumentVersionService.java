@@ -33,6 +33,7 @@ import java.util.List;
 public class DocumentVersionService {
 
     private final DocumentRepository documentRepository;
+    private final UserService userService;
     private final DocumentVersionRepository documentVersionRepository;
     private final DocumentMemberRepository documentMemberRepository;
     private final UserRepository userRepository;
@@ -352,6 +353,51 @@ public class DocumentVersionService {
         return documentFileStorageService.readFile(version);
     }
 
+    @Transactional
+    public DeleteDocumentVersionResponse deleteDocumentVersion(Long versionId, String adminUsername) {
+        User admin = userService.getValidatedAdmin(adminUsername, "Cannot delete version -");
+
+        DocumentVersion version = documentVersionRepository.findById(versionId)
+                .orElseThrow(() -> {
+                    logger.error("Cannot delete version - version with id {} not found", versionId);
+                    return new IllegalArgumentException("Document version not found.");
+                });
+
+        Document document = version.getDocument();
+
+        long versionCount = documentVersionRepository.countByDocument(document);
+        if (versionCount == 1) {
+            logger.error("Cannot delete version - version with id {} is the only version of document with id {}", versionId, document.getId());
+            throw new IllegalArgumentException("Cannot delete the only version of a document. Delete the whole document instead.");
+        }
+
+        boolean isParentOfAnotherVersion = documentVersionRepository.existsByParentVersion(version);
+        if (isParentOfAnotherVersion) {
+            logger.error("Cannot delete version - version with id {} is parent of another version", versionId);
+            throw new IllegalArgumentException("Cannot delete a version that is parent of another version.");
+        }
+
+        if (document.getActiveVersion() != null &&
+                document.getActiveVersion().getId().equals(version.getId())) {
+            document.setActiveVersion(version.getParentVersion());
+            documentRepository.save(document);
+        }
+
+        Long deletedVersionId = version.getId();
+        Long documentId = document.getId();
+        Integer versionNumber = version.getVersionNumber();
+
+        documentVersionRepository.delete(version);
+
+        logger.info("Successfully deleted version with id {} of document with id {}", deletedVersionId, documentId);
+
+        return new DeleteDocumentVersionResponse(
+                deletedVersionId,
+                documentId,
+                versionNumber,
+                "Document version deleted successfully."
+        );
+    }
 
 
 }

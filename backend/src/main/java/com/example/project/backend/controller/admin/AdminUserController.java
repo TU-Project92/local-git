@@ -5,7 +5,7 @@ import com.example.project.backend.dto.request.user.UserDeactivationRequest;
 import com.example.project.backend.dto.response.user.UserActivationResponse;
 import com.example.project.backend.dto.response.user.UserDeactivationResponse;
 import com.example.project.backend.dto.response.user.UserSearchResponse;
-import com.example.project.backend.service.AdminService;
+import com.example.project.backend.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +21,7 @@ import java.util.List;
 @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
-    private final AdminService adminService;
+    private final UserService userService;
 
     @GetMapping("/search")
     public ResponseEntity<List<UserSearchResponse>> searchUsers(
@@ -29,7 +29,7 @@ public class AdminUserController {
             Authentication authentication
     ) {
         return ResponseEntity.ok(
-                adminService.searchUsersForAdmin(authentication.getName(), search)
+                userService.searchUsersForAdmin(authentication.getName(), search)
         );
     }
 
@@ -39,7 +39,7 @@ public class AdminUserController {
             Authentication authentication
     ){
         return ResponseEntity.ok(
-                adminService.deactivateUser(request.getUserId(), authentication.getName())
+                userService.deactivateUser(request.getUserId(), authentication.getName())
         );
     }
 
@@ -49,7 +49,7 @@ public class AdminUserController {
             Authentication authentication
     ){
         return ResponseEntity.ok(
-                adminService.activateUser(request.getUserId(), authentication.getName())
+                userService.activateUser(request.getUserId(), authentication.getName())
         );
     }
 }

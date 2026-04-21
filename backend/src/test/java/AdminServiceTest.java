@@ -9,7 +9,9 @@ import com.example.project.backend.model.enums.SystemRole;
 import com.example.project.backend.repository.DocumentRepository;
 import com.example.project.backend.repository.DocumentVersionRepository;
 import com.example.project.backend.repository.UserRepository;
-import com.example.project.backend.service.AdminService;
+import com.example.project.backend.service.DocumentService;
+import com.example.project.backend.service.DocumentVersionService;
+import com.example.project.backend.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,7 +36,14 @@ class AdminServiceTest {
     private DocumentVersionRepository documentVersionRepository;
 
     @InjectMocks
-    private AdminService adminService;
+    private UserService userService;
+
+    @InjectMocks
+    private DocumentVersionService documentVersionService;
+
+    @InjectMocks
+    private DocumentService documentService;
+
 
     @Test
     void shouldDeactivateUserSuccessfully() {
@@ -52,7 +61,7 @@ class AdminServiceTest {
         when(userRepository.findByUsername("adminUser")).thenReturn(Optional.of(admin));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UserDeactivationResponse response = adminService.deactivateUser(1L, "adminUser");
+        UserDeactivationResponse response = userService.deactivateUser(1L, "adminUser");
 
         assertEquals(1L, response.getUserId());
         assertEquals("ivan", response.getUsername());
@@ -77,7 +86,7 @@ class AdminServiceTest {
         when(userRepository.findByUsername("adminUser")).thenReturn(Optional.of(admin));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-        UserActivationResponse response = adminService.activateUser(1L, "adminUser");
+        UserActivationResponse response = userService.activateUser(1L, "adminUser");
 
         assertEquals(1L, response.getUserId());
         assertEquals("ivan", response.getUsername());
@@ -118,7 +127,7 @@ class AdminServiceTest {
         when(documentVersionRepository.countByDocument(document)).thenReturn(2L);
         when(documentVersionRepository.existsByParentVersion(version)).thenReturn(false);
 
-        DeleteDocumentVersionResponse response = adminService.deleteDocumentVersion(200L, "adminUser");
+        DeleteDocumentVersionResponse response = documentVersionService.deleteDocumentVersion(200L, "adminUser");
 
         assertEquals(200L, response.getVersionId());
         assertEquals(10L, response.getDocumentId());
@@ -145,7 +154,7 @@ class AdminServiceTest {
         when(userRepository.findByUsername("adminUser")).thenReturn(Optional.of(admin));
         when(documentRepository.findById(10L)).thenReturn(Optional.of(document));
 
-        DeleteDocumentResponse response = adminService.deleteDocument(10L, "adminUser");
+        DeleteDocumentResponse response = documentService.deleteDocument(10L, "adminUser");
 
         assertEquals(10L, response.getDocumentId());
         assertEquals("Project Plan", response.getTitle());
@@ -165,7 +174,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.deactivateUser(1L, "normalUser")
+                () -> userService.deactivateUser(1L, "normalUser")
         );
 
         assertEquals("Only admins can deactivate users.", exception.getMessage());
@@ -182,7 +191,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.activateUser(1L, "ivan")
+                () -> userService.activateUser(1L, "ivan")
         );
 
         assertEquals(" Only admins can activate users.", exception.getMessage());
@@ -194,7 +203,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.deactivateUser(1L, "missingAdmin")
+                () -> userService.deactivateUser(1L, "missingAdmin")
         );
 
         assertEquals("Admin not found.", exception.getMessage());
@@ -212,7 +221,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.deactivateUser(1L, "adminUser")
+                () -> userService.deactivateUser(1L, "adminUser")
         );
 
         assertEquals("User not found.", exception.getMessage());
@@ -242,7 +251,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.deleteDocumentVersion(100L, "adminUser")
+                () -> documentVersionService.deleteDocumentVersion(100L, "adminUser")
         );
 
         assertEquals("Cannot delete the only version of a document. Delete the whole document instead.", exception.getMessage());
@@ -275,7 +284,7 @@ class AdminServiceTest {
 
         IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
-                () -> adminService.deleteDocumentVersion(100L, "adminUser")
+                () -> documentVersionService.deleteDocumentVersion(100L, "adminUser")
         );
 
         assertEquals("Cannot delete a version that is parent of another version.", exception.getMessage());

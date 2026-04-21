@@ -1,4 +1,5 @@
 import com.example.project.backend.controller.admin.AdminDocumentController;
+import com.example.project.backend.controller.admin.AdminDocumentVersionController;
 import com.example.project.backend.controller.admin.AdminUserController;
 import com.example.project.backend.dto.request.user.UserActivationRequest;
 import com.example.project.backend.dto.request.user.UserDeactivationRequest;
@@ -6,7 +7,9 @@ import com.example.project.backend.dto.response.documentVersion.DeleteDocumentRe
 import com.example.project.backend.dto.response.documentVersion.DeleteDocumentVersionResponse;
 import com.example.project.backend.dto.response.user.UserActivationResponse;
 import com.example.project.backend.dto.response.user.UserDeactivationResponse;
-import com.example.project.backend.service.AdminService;
+import com.example.project.backend.service.DocumentService;
+import com.example.project.backend.service.DocumentVersionService;
+import com.example.project.backend.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,7 +26,13 @@ import static org.mockito.Mockito.*;
 class AdminControllerTest {
 
     @Mock
-    private AdminService adminService;
+    private UserService userService;
+
+    @Mock
+    private DocumentService documentService;
+
+    @Mock
+    private DocumentVersionService documentVersionService;
 
     @Mock
     private Authentication authentication;
@@ -33,6 +42,9 @@ class AdminControllerTest {
 
     @InjectMocks
     private AdminDocumentController adminDocumentController;
+
+    @InjectMocks
+    private AdminDocumentVersionController adminDocumentVersionController;
 
     @Test
     void shouldDeactivateUserSuccessfully() {
@@ -47,7 +59,7 @@ class AdminControllerTest {
         );
 
         when(authentication.getName()).thenReturn("adminUser");
-        when(adminService.deactivateUser(5L, "adminUser")).thenReturn(serviceResponse);
+        when(userService.deactivateUser(5L, "adminUser")).thenReturn(serviceResponse);
 
         ResponseEntity<UserDeactivationResponse> response =
                 adminUserController.deactivateUser(request, authentication);
@@ -61,7 +73,7 @@ class AdminControllerTest {
         assertEquals("User account is deactivated successfully. ", response.getBody().getMessage());
 
         verify(authentication).getName();
-        verify(adminService).deactivateUser(5L, "adminUser");
+        verify(userService).deactivateUser(5L, "adminUser");
     }
 
     @Test
@@ -77,7 +89,7 @@ class AdminControllerTest {
         );
 
         when(authentication.getName()).thenReturn("adminUser");
-        when(adminService.activateUser(5L, "adminUser")).thenReturn(serviceResponse);
+        when(userService.activateUser(5L, "adminUser")).thenReturn(serviceResponse);
 
         ResponseEntity<UserActivationResponse> response =
                 adminUserController.activateUser(request, authentication);
@@ -91,7 +103,7 @@ class AdminControllerTest {
         assertEquals("User account is activated successfully.", response.getBody().getMessage());
 
         verify(authentication).getName();
-        verify(adminService).activateUser(5L, "adminUser");
+        verify(userService).activateUser(5L, "adminUser");
     }
 
     @Test
@@ -104,10 +116,10 @@ class AdminControllerTest {
         );
 
         when(authentication.getName()).thenReturn("adminUser");
-        when(adminService.deleteDocumentVersion(11L, "adminUser")).thenReturn(serviceResponse);
+        when(documentVersionService.deleteDocumentVersion(11L, "adminUser")).thenReturn(serviceResponse);
 
         ResponseEntity<DeleteDocumentVersionResponse> response =
-                adminDocumentController.deleteDocumentVersion(11L, authentication);
+                adminDocumentVersionController.deleteDocumentVersion(11L, authentication);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -118,7 +130,7 @@ class AdminControllerTest {
         assertEquals("Document version deleted successfully.", response.getBody().getMessage());
 
         verify(authentication).getName();
-        verify(adminService).deleteDocumentVersion(11L, "adminUser");
+        verify(documentVersionService).deleteDocumentVersion(11L, "adminUser");
     }
 
     @Test
@@ -130,7 +142,7 @@ class AdminControllerTest {
         );
 
         when(authentication.getName()).thenReturn("adminUser");
-        when(adminService.deleteDocument(7L, "adminUser")).thenReturn(serviceResponse);
+        when(documentService.deleteDocument(7L, "adminUser")).thenReturn(serviceResponse);
 
         ResponseEntity<DeleteDocumentResponse> response =
                 adminDocumentController.deleteDocument(7L, authentication);
@@ -143,6 +155,6 @@ class AdminControllerTest {
         assertEquals("Document deleted successfully.", response.getBody().getMessage());
 
         verify(authentication).getName();
-        verify(adminService).deleteDocument(7L, "adminUser");
+        verify(documentService).deleteDocument(7L, "adminUser");
     }
 }
