@@ -11,4 +11,5 @@ public class UserSearchResponse {
     private String firstName;
     private String lastName;
     private String email;
+    private boolean active;
 }

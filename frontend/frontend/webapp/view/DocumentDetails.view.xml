@@ -12,11 +12,20 @@
                         <Button text="← Back" type="Transparent" press=".onBackToDashboard" class="documentBackButton" />
                         <Title text="{document>/title}" class="documentPageTitle" />
                     </HBox>
-                    <Button
-                        text="Add team member"
-                        press=".onOpenAddMemberDialog"
-                        class="dashboardLogoutButton"
-                        visible="{= ${document>/currentUserRole} === 'OWNER' }" />
+
+                    <HBox alignItems="Center" class="documentTopBarActions">
+                        <Button
+                            text="Add version"
+                            press=".onAddVersionPress"
+                            class="documentAddVersionButton"
+                            visible="{= ${document>/currentUserRole} === 'OWNER' || ${document>/currentUserRole} === 'AUTHOR' }" />
+
+                        <Button
+                            text="Add team member"
+                            press=".onOpenAddMemberDialog"
+                            class="dashboardLogoutButton"
+                            visible="{= ${document>/currentUserRole} === 'OWNER' }" />
+                    </HBox>
                 </HBox>
 
                 <HBox class="documentDetailsContent" alignItems="Start" justifyContent="SpaceBetween">
@@ -53,7 +62,16 @@
                         </VBox>
 
                         <VBox class="glassCard documentVersionsCard">
-                            <Title text="All versions" class="sectionMainTitle" />
+                            <HBox justifyContent="SpaceBetween" alignItems="Center">
+                                <Title text="All versions" class="sectionMainTitle" />
+                                <Button
+                                    text="New version"
+                                    press=".onAddVersionPress"
+                                    type="Transparent"
+                                    class="documentInlineVersionButton"
+                                    visible="{= ${document>/currentUserRole} === 'OWNER' || ${document>/currentUserRole} === 'AUTHOR' }" />
+                            </HBox>
+
                             <List items="{document>/versions}" showSeparators="None" class="dashboardList">
                                 <CustomListItem>
                                     <VBox class="listGlassItem documentVersionItem">

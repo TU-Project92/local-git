@@ -14,4 +14,5 @@ public class UserProfileResponse {
     private String email;
     private SystemRole systemRole;
     private String myInfo;
+    private boolean active;
 }

@@ -61,22 +61,34 @@
                                 <Column>
                                     <Text text="Created At" />
                                 </Column>
+                                <Column hAlign="Center">
+                                    <Text text="Delete" />
+                                </Column>
                                 <Column hAlign="End">
-                                    <Text text="Open" />
+                                    <Text text="Preview" />
                                 </Column>
                             </columns>
 
                             <items>
-                                <ColumnListItem>
+                                <ColumnListItem class="adminDocumentRow">
                                     <cells>
                                         <Text text="{admin>title}" />
                                         <Text text="{admin>ownerUsername}" />
                                         <Text text="{admin>versionsCount}" />
                                         <Text text="{ path: 'admin>createdAt', formatter: '.formatDateTime' }" />
+
+                                        <Button
+                                            icon="sap-icon://delete"
+                                            type="Transparent"
+                                            tooltip="Delete document"
+                                            press="onDeleteDocument"
+                                            class="adminDeleteButton" />
+
                                         <Button
                                             text="View"
                                             type="Transparent"
-                                            press="onOpenDocument" />
+                                            press="onOpenDocument"
+                                            class="adminViewButton" />
                                     </cells>
                                 </ColumnListItem>
                             </items>
@@ -102,13 +114,24 @@
                                 showSeparators="None">
 
                                 <CustomListItem>
-                                    <VBox class="listGlassItem adminUserListItem">
-                                        <Title text="{admin>username}" class="listItemTitle" />
-                                        <Text text="{admin>email}" class="listItemSubtitle" />
-                                        <Text
-                                            text="{= (${admin>firstName} || '') + ' ' + (${admin>lastName} || '') }"
-                                            class="listItemSubtitle" />
-                                    </VBox>
+                                    <HBox class="listGlassItem adminUserListItem" justifyContent="SpaceBetween" alignItems="Center">
+                                        <VBox class="adminUserTextBox">
+                                            <Title text="{admin>username}" class="listItemTitle" />
+                                            <Text text="{admin>email}" class="listItemSubtitle" />
+                                            <Text text="{admin>fullName}" class="listItemSubtitle" />
+                                            <ObjectStatus
+                                                text="{= ${admin>active} ? 'Active' : 'Inactive' }"
+                                                state="{= ${admin>active} ? 'Success' : 'Error' }"
+                                                class="adminUserStatus" />
+                                        </VBox>
+
+                                        <Button
+                                            icon="sap-icon://navigation-right-arrow"
+                                            type="Transparent"
+                                            tooltip="Open user details"
+                                            press="onOpenUserDetails"
+                                            class="itemArrowButton" />
+                                    </HBox>
                                 </CustomListItem>
                             </List>
                         </ScrollContainer>

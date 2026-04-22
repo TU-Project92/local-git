@@ -1112,6 +1112,241 @@ body,
     gap: 10px;
 }
 
+.documentTopBarActions {
+    gap: 12px;
+}
+
+.documentAddVersionButton .sapMBtnInner {
+    border: none !important;
+    border-radius: 999px !important;
+    height: 46px !important;
+    background: linear-gradient(90deg, #6f72ff 0%, #7f53ff 100%) !important;
+    box-shadow: none !important;
+    padding: 0 18px !important;
+}
+
+.documentAddVersionButton .sapMBtnContent {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 0.98rem !important;
+    line-height: 46px !important;
+}
+
+.documentInlineVersionButton .sapMBtnInner {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.documentInlineVersionButton .sapMBtnContent {
+    color: #5d6dff !important;
+    font-weight: 700 !important;
+}
+
+/* ======================================================
+   ADD MEMBER DIALOG – FINAL CLEAN VERSION
+   ====================================================== */
+
+.memberDialogShell.sapMDialog {
+    border-radius: 26px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow: 0 24px 60px rgba(22, 12, 84, 0.28) !important;
+}
+
+/* BACKGROUND */
+.memberDialogShell .sapMDialogSection {
+    background: linear-gradient(
+        180deg,
+        rgba(232, 225, 255, 0.95) 0%,
+        rgba(210, 225, 255, 0.92) 100%
+    ) !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* HEADER */
+.memberDialogShell .sapMDialogTitleGroup {
+    background: linear-gradient(90deg, #7c68ff 0%, #6d7fff 100%) !important;
+    border: none !important;
+    height: 72px !important;
+    padding: 0 22px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.memberDialogShell .sapMDialogTitle {
+    color: #ffffff !important;
+    font-size: 1.2rem !important;
+    font-weight: 800 !important;
+}
+
+/* CONTENT */
+.memberDialogContent {
+    padding: 22px !important;
+}
+
+/* LABELS */
+.memberDialogLabel {
+    color: #2c255d !important;
+    font-size: 1.05rem !important;
+    font-weight: 800 !important;
+    margin-top: 12px !important;
+    margin-bottom: 8px !important;
+}
+
+/* =========================
+   SEARCH
+   ========================= */
+
+.memberDialogSearch .sapMSF {
+    height: 48px !important;
+    border-radius: 16px !important;
+    border: 1px solid rgba(113, 103, 255, 0.20) !important;
+    background: rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 8px 18px rgba(52, 34, 131, 0.08) !important;
+}
+
+.memberDialogSearch .sapMSFI {
+    height: 48px !important;
+    line-height: 48px !important;
+    padding-left: 16px !important;
+    font-style: italic !important;
+    color: #4a456d !important;
+    background: transparent !important;
+}
+
+.memberDialogSearch .sapMSFF,
+.memberDialogSearch .sapMSFR {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+/* =========================
+   ROLE SELECTOR
+   ========================= */
+
+.memberRoleSegmentedButton .sapMSegB {
+    display: flex !important;
+    gap: 12px !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.memberRoleSegmentedButton .sapMSegBBtn {
+    flex: 1;
+    height: 42px !important;
+    border: none !important;
+    border-bottom: 2px solid rgba(90, 78, 208, 0.2) !important;
+    background: transparent !important;
+    color: #5a4ed0 !important;
+    font-weight: 800 !important;
+}
+
+.memberRoleSegmentedButton .sapMSegBBtnSel {
+    border-bottom: 3px solid #4f8dff !important;
+    color: #2e63ff !important;
+    background: transparent !important;
+}
+
+/* =========================
+   USER LIST
+   ========================= */
+
+.memberDialogContent .sapMLIB {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1px solid rgba(255, 255, 255, 0.40) !important;
+    border-radius: 18px !important;
+    margin-bottom: 10px !important;
+    padding: 10px !important;
+    box-shadow: 0 8px 18px rgba(52, 34, 131, 0.05) !important;
+}
+
+.memberDialogContent .sapMLIB:hover {
+    background: rgba(255, 255, 255, 0.65) !important;
+}
+
+.memberDialogContent .sapMLIBSelected {
+    background: linear-gradient(
+        90deg,
+        rgba(122, 104, 255, 0.18),
+        rgba(102, 141, 255, 0.14)
+    ) !important;
+    border: 1px solid rgba(102, 120, 255, 0.3) !important;
+}
+
+.memberDialogContent .sapMSLITitle {
+    color: #2b255d !important;
+    font-weight: 800 !important;
+}
+
+.memberDialogContent .sapMSLIDescription {
+    color: #60708a !important;
+}
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.memberDialogShell .sapMDialogFooter {
+    background: linear-gradient(90deg, #7c68ff 0%, #6d7fff 100%) !important;
+    height: 80px !important;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.memberDialogPrimaryButton .sapMBtnInner {
+    height: 44px !important;
+    border-radius: 14px !important;
+    background: rgba(255, 255, 255, 0.20) !important;
+    border: none !important;
+}
+
+.memberDialogPrimaryButton .sapMBtnContent {
+    color: #ffffff !important;
+    font-weight: 800 !important;
+}
+
+.memberDialogSecondaryButton .sapMBtnInner {
+    height: 44px !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+}
+
+.memberDialogSecondaryButton .sapMBtnContent {
+    color: #ffffff !important;
+}
+
+/* =========================
+   REMOVE BLUE UI5 LINES
+   ========================= */
+
+.memberDialogShell *:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.memberDialogSearch .sapMSF.sapMSFFocus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+.memberRoleSegmentedButton .sapMSegBBtn:focus {
+    outline: none !important;
+}
+
+.memberDialogContent .sapMLIB:focus {
+    outline: none !important;
+}
+
+.memberDialogShell .sapMBtn:focus {
+    outline: none !important;
+}
+
 /*  RESPONSIVE */
 
 @media (max-width: 1200px) {
@@ -1221,43 +1456,340 @@ body,
     flex: 1;
     min-height: 0;
     gap: 20px;
-    align-items: stretch !important;
 }
 
 .adminTableCard {
-    width: 70%;
-    min-height: 0;
-    padding: 22px;
+    width: 69%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .adminUsersCard {
-    width: 30%;
-    min-width: 280px;
-    min-height: 0;
-    padding: 22px;
+    width: 31%;
+    min-width: 320px;
+    display: flex;
+    flex-direction: column;
 }
 
 .adminTable {
-    margin-top: 12px;
+    margin-top: 14px;
+    background: transparent !important;
 }
 
-.adminTable .sapMListTbl,
-.adminTable .sapMListTblHeader,
+.adminTable .sapMListTbl {
+    background: transparent !important;
+    border-collapse: separate !important;
+    border-spacing: 0 8px !important;
+}
+
+.adminTable .sapMListTblHeader {
+    background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.adminTable .sapMListTblHeaderCell {
+    background: rgba(255, 255, 255, 0.10) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14) !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
+}
+
+.adminTable .sapMColumnHeader .sapMText,
+.adminTable .sapMListTblHeaderCell .sapMText,
+.adminTable .sapMLabel {
+    color: #251f5b !important;
+    font-weight: 800 !important;
+    font-size: 0.95rem !important;
+}
+
 .adminTable .sapMListTblRow {
     background: transparent !important;
 }
 
-.adminTable .sapMListTblCell,
-.adminTable .sapMListTblHeaderCell {
-    border-color: rgba(255, 255, 255, 0.12) !important;
+.adminTable .sapMListTblCell {
+    background: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+    padding-top: 14px !important;
+    padding-bottom: 14px !important;
 }
 
-.adminTable .sapMText,
-.adminTable .sapMLabel,
-.adminTable .sapMColumnHeader .sapMText {
-    color: #ffffff !important;
+.adminTable .sapMText {
+    color: #f3f0ff !important;
+    font-weight: 600 !important;
+}
+
+.adminDocumentRow:hover .sapMListTblCell {
+    background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.adminDeleteButton .sapMBtnInner,
+.adminViewButton .sapMBtnInner {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+}
+
+.adminDeleteButton .sapMBtnIcon {
+    color: #ff6a8f !important;
+}
+
+.adminViewButton .sapMBtnContent {
+    color: #67a8ff !important;
+    font-weight: 700 !important;
 }
 
 .adminUserListItem {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
+}
+
+.adminUserTextBox {
+    gap: 4px;
+    min-width: 0;
+}
+
+.adminUserStatus {
+    margin-top: 8px;
+}
+
+/* 
+ADMIN USER DETAILS DIALOG*/
+/* =========================
+   ADMIN USER DIALOG — polished
+   ========================= */
+
+.adminUserDialog.sapMDialog {
+    border-radius: 30px !important;
+    overflow: hidden !important;
+    border: 1px solid rgba(255, 255, 255, 0.14) !important;
+    box-shadow:
+        0 24px 70px rgba(20, 12, 72, 0.34),
+        0 8px 24px rgba(20, 12, 72, 0.18) !important;
+    backdrop-filter: blur(22px);
+    -webkit-backdrop-filter: blur(22px);
+}
+
+.adminUserDialog .sapMDialogSection {
+    background: linear-gradient(180deg, rgba(87, 77, 196, 0.96) 0%, rgba(72, 61, 184, 0.98) 100%) !important;
+    border: none !important;
+    padding: 0 !important;
+}
+
+/* HEADER */
+.adminUserDialog .sapMDialogTitleGroup {
+    background: linear-gradient(180deg, rgba(128, 120, 255, 0.96) 0%, rgba(112, 126, 255, 0.92) 100%) !important;
+    border: none !important;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
+    min-height: 86px !important;
+    height: 86px !important;
+    padding: 0 30px !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.adminUserDialog .sapMDialogTitle {
+    margin: 0 !important;
+    padding: 0 !important;
+    color: #ffffff !important;
+    font-size: 1.24rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.01em !important;
+    line-height: 1 !important;
+}
+
+.adminUserDialog .sapMDialogTitleGroup::before,
+.adminUserDialog .sapMDialogTitleGroup::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* BODY */
+.adminUserDialog .sapMDialogScrollCont {
+    background: transparent !important;
+}
+
+.adminUserDialogContent {
+    padding: 34px 34px 28px 34px !important;
+    gap: 28px !important;
+    background: transparent !important;
+    box-sizing: border-box !important;
+}
+
+.adminUserTopRow {
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 26px !important;
+    padding-bottom: 26px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10) !important;
+}
+
+.adminUserMainInfo {
+    flex: 1;
+    gap: 10px !important;
+}
+
+.adminUserName.sapMTitle {
+    margin: 0 0 14px 0 !important;
+    color: #ffffff !important;
+    font-size: 2.05rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.03em !important;
+    line-height: 1.08 !important;
+}
+
+.adminUserMeta {
+    color: rgba(255, 255, 255, 0.95) !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    line-height: 1.56 !important;
+}
+
+.adminUserStatusBox {
+    min-width: 140px;
+    align-items: flex-end;
+    gap: 8px;
+    padding-top: 14px !important;
+}
+
+.adminUserStatusBadge {
+    margin-top: 0 !important;
+}
+
+.adminUserStatusBadge .sapMObjStatusText {
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.adminSelfDeactivateHint {
+    color: rgba(255, 255, 255, 0.78) !important;
+    font-size: 0.84rem !important;
+    line-height: 1.35 !important;
+    text-align: right !important;
+    max-width: 170px;
+}
+
+.adminUserSection {
+    gap: 16px !important;
+}
+
+.adminSectionTitle.sapMTitle {
+    margin: 0 !important;
+    color: #ffffff !important;
+    font-size: 1.18rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.adminUserInfoBox {
+    padding: 24px 26px !important;
+    border-radius: 28px !important;
+    background: rgba(255, 255, 255, 0.10) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.08),
+        0 10px 26px rgba(34, 20, 112, 0.10) !important;
+    overflow: hidden !important;
+}
+
+.adminUserInfoText {
+    color: #fbfaff !important;
+    font-size: 1.05rem !important;
+    font-weight: 600 !important;
+    line-height: 1.72 !important;
+    letter-spacing: -0.01em !important;
+}
+
+/* FOOTER */
+.adminUserDialog .sapMDialogFooter {
+    background: linear-gradient(180deg, rgba(118, 111, 255, 0.92) 0%, rgba(103, 117, 255, 0.90) 100%) !important;
+    border: none !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10) !important;
+    min-height: 96px !important;
+    height: 96px !important;
+    padding: 0 !important;
+}
+
+.adminUserDialog .sapMBar,
+.adminUserDialog .sapMFooter-CTX,
+.adminUserDialog .sapMDialogFooter .sapMBar,
+.adminUserDialog .sapMDialogFooter .sapMIBar,
+.adminUserDialog .sapMDialogFooter .sapMBarPH,
+.adminUserDialog .sapMDialogFooter .sapMBarRight {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+
+.adminUserDialog .sapMDialogFooter .sapMBarPH,
+.adminUserDialog .sapMDialogFooter .sapMBarRight {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: center !important;
+    gap: 14px !important;
+    padding: 18px 24px !important;
+    min-height: unset !important;
+    height: auto !important;
+    box-sizing: border-box !important;
+}
+
+/* BUTTONS */
+.adminPrimaryDialogButton .sapMBtnInner,
+.adminSecondaryDialogButton .sapMBtnInner {
+    height: 50px !important;
+    border-radius: 999px !important;
+    box-shadow: none !important;
+    padding: 0 26px !important;
+    overflow: hidden !important;
+}
+
+.adminPrimaryDialogButton .sapMBtnInner {
+    min-width: 178px !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    background: rgba(255, 255, 255, 0.18) !important;
+}
+
+.adminPrimaryDialogButton .sapMBtnContent {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.adminPrimaryDialogButton .sapMBtnInner:hover {
+    background: rgba(255, 255, 255, 0.26) !important;
+}
+
+.adminSecondaryDialogButton .sapMBtnInner {
+    min-width: 150px !important;
+    border: 1px solid rgba(255, 255, 255, 0.20) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+.adminSecondaryDialogButton .sapMBtnContent {
+    color: #ffffff !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.01em !important;
+}
+
+.adminSecondaryDialogButton .sapMBtnInner:hover {
+    background: rgba(255, 255, 255, 0.14) !important;
+}
+
+/* CLEANUP */
+.adminUserDialog .sapMBtnInner::before,
+.adminUserDialog .sapMBtnInner::after,
+.adminUserDialog .sapMDialogFooter::before,
+.adminUserDialog .sapMDialogFooter::after,
+.adminUserDialog .sapMDialogTitleGroup::before,
+.adminUserDialog .sapMDialogTitleGroup::after {
+    display: none !important;
+    content: none !important;
+}
+
+.adminUserDialog .sapMDialogTitleGroup,
+.adminUserDialog .sapMDialogSection,
+.adminUserDialog .sapMDialogFooter {
+    box-sizing: border-box !important;
 }

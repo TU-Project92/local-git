@@ -135,6 +135,76 @@ sap.ui.define([
             }
         },
 
+        onAddVersionPress: function () {
+            var sRole = this.getView().getModel("document").getProperty("/currentUserRole");
+
+            if (sRole !== "OWNER" && sRole !== "AUTHOR") {
+                MessageBox.warning("Само owner или author може да качва нова версия.");
+                return;
+            }
+
+            if (!this._oVersionFileInput) {
+                this._oVersionFileInput = document.createElement("input");
+                this._oVersionFileInput.type = "file";
+                this._oVersionFileInput.style.display = "none";
+
+                this._oVersionFileInput.addEventListener("change", function (oEvent) {
+                    var oFile = oEvent.target.files && oEvent.target.files[0];
+                    if (oFile) {
+                        this._uploadNewVersion(oFile);
+                    }
+
+                    oEvent.target.value = "";
+                }.bind(this));
+
+                document.body.appendChild(this._oVersionFileInput);
+            }
+
+            this._oVersionFileInput.click();
+        },
+
+        _uploadNewVersion: async function (oFile) {
+            var oDocumentModel = this.getView().getModel("document");
+            var iDocumentId = oDocumentModel.getProperty("/id");
+            var sToken = localStorage.getItem("token");
+
+            if (!iDocumentId) {
+                MessageBox.error("Липсва document id.");
+                return;
+            }
+
+            if (!oFile) {
+                MessageBox.warning("Избери файл.");
+                return;
+            }
+
+            var oFormData = new FormData();
+            oFormData.append("documentId", iDocumentId);
+            oFormData.append("file", oFile);
+
+            try {
+                var oResponse = await fetch("http://localhost:8080/api/documentVersions/createNew", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + sToken
+                    },
+                    body: oFormData
+                });
+
+                var sText = await oResponse.text();
+
+                if (!oResponse.ok) {
+                    throw new Error(sText || "Cannot create new version");
+                }
+
+                MessageToast.show("Новата версия е качена успешно.");
+
+                await this._loadDocument(iDocumentId);
+            } catch (oError) {
+                MessageBox.error("Неуспешно качване на нова версия: " + oError.message);
+            }
+        },
+
         onOpenVersion: async function (oEvent) {
             var oContext = oEvent.getSource().getBindingContext("document");
             if (!oContext) {
