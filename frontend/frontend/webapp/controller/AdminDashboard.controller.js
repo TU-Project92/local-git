@@ -71,6 +71,15 @@ sap.ui.define([
             this.getOwnerComponent().getRouter().navTo("RouteLogin");
         },
 
+        _handleForbidden: function (sMessage, bCloseCreateAdminDialog) {
+            if (bCloseCreateAdminDialog) {
+                this.onCloseCreateAdminDialog();
+                this._clearCreateAdminForm();
+            }
+
+            MessageBox.error(sMessage || "You do not have permission to perform this action.");
+        },
+
         _mapUser: function (oUser) {
             var sFirstName = oUser.firstName || "";
             var sLastName = oUser.lastName || "";
@@ -106,11 +115,13 @@ sap.ui.define([
                     })
                 ]);
 
-                if (
-                    oDocumentsResponse.status === 401 || oDocumentsResponse.status === 403 ||
-                    oUsersResponse.status === 401 || oUsersResponse.status === 403
-                ) {
+                if (oDocumentsResponse.status === 401 || oUsersResponse.status === 401) {
                     this._handleUnauthorized();
+                    return;
+                }
+
+                if (oDocumentsResponse.status === 403 || oUsersResponse.status === 403) {
+                    this._handleForbidden("You do not have permission to load admin data.", false);
                     return;
                 }
 
@@ -212,8 +223,13 @@ sap.ui.define([
 
             const sText = await oResponse.text();
 
-            if (oResponse.status === 401 || oResponse.status === 403) {
+            if (oResponse.status === 401) {
                 this._handleUnauthorized();
+                return [];
+            }
+
+            if (oResponse.status === 403) {
+                this._handleForbidden("You do not have permission to load document versions.", false);
                 return [];
             }
 
@@ -251,8 +267,13 @@ sap.ui.define([
 
                 const sText = await oResponse.text();
 
-                if (oResponse.status === 401 || oResponse.status === 403) {
+                if (oResponse.status === 401) {
                     this._handleUnauthorized();
+                    return;
+                }
+
+                if (oResponse.status === 403) {
+                    this._handleForbidden("You do not have permission to delete this version.", false);
                     return;
                 }
 
@@ -309,8 +330,13 @@ sap.ui.define([
 
                 const sText = await oResponse.text();
 
-                if (oResponse.status === 401 || oResponse.status === 403) {
+                if (oResponse.status === 401) {
                     this._handleUnauthorized();
+                    return;
+                }
+
+                if (oResponse.status === 403) {
+                    this._handleForbidden("You do not have permission to delete this document.", false);
                     return;
                 }
 
@@ -387,8 +413,13 @@ sap.ui.define([
 
                 const sText = await oResponse.text();
 
-                if (oResponse.status === 401 || oResponse.status === 403) {
+                if (oResponse.status === 401) {
                     this._handleUnauthorized();
+                    return;
+                }
+
+                if (oResponse.status === 403) {
+                    this._handleForbidden("You do not have permission to change user status.", false);
                     return;
                 }
 
@@ -495,8 +526,13 @@ sap.ui.define([
 
                 const sText = await oResponse.text();
 
-                if (oResponse.status === 401 || oResponse.status === 403) {
+                if (oResponse.status === 401) {
                     this._handleUnauthorized();
+                    return;
+                }
+
+                if (oResponse.status === 403) {
+                    this._handleForbidden("You do not have permission to send admin invitations.", true);
                     return;
                 }
 
